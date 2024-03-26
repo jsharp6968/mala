@@ -6,16 +6,9 @@ import hashlib
 import constants
 import logging as log
 from constants import FILE_HASH_BUFFER_SIZE, SHR_CUTOFF, MAX_STRING_CHAR_LIMIT
-import numpy as np
 from collections import Counter
 from scipy.spatial.distance import cosine
 
-
-def calculate_entropy(text):
-    """Calculate the Shannon entropy of a string."""
-    probabilities = [float(text.count(c)) / len(text) for c in dict.fromkeys(list(text))]
-    entropy = -sum(p * np.log2(p) for p in probabilities)
-    return entropy
 
 
 def calculate_similarity(vector1, vector2):

@@ -74,6 +74,7 @@ def worker_function(file_chunk, toolchain, single=None):
         dao.destroy()
         log.debug(f"Thread finished. Processed: {count} Verified: {verified} NEW:{handled} ")
 
+
 def singleshot(filename, toolchain):
     """
     Run all tools on just one sample.
@@ -84,6 +85,7 @@ def singleshot(filename, toolchain):
     print(f"Time:{runtime:.6f} seconds.")
     log.debug(f"Handled this malware sample in {runtime:.6f} seconds.")
     exit()
+
 
 def run(args, mfh, target_files):
     """

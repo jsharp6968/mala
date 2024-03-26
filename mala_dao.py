@@ -1,4 +1,3 @@
-import sqlite3
 import time
 import random
 import psycopg2
@@ -36,21 +35,27 @@ class MalaDAO:
         self.conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         self.cursor = self.conn.cursor()
 
+
     def destroy(self):
         self.close()
+
 
     def close(self):
         self.cursor.close()
         self.conn.close()
 
+
     def commit(self):
         self.conn.commit()
+
 
     def rollback(self):
         self.conn.rollback()
 
+
     def begin_transaction(self):
         self.cursor.execute("BEGIN;")
+
 
     def get_file_rowcount(self, file_id, table_name):
         sql = f"select count(*) from {table_name} where id_file = {file_id};"
@@ -147,12 +152,14 @@ class MalaDAO:
 
         self.cursor.executemany(sql_statement, values)
 
+
     def insert_tlsh_json(self, tlsh_data, file_id):
         values = [tlsh_data['digests'][0]['tlsh'], file_id]
         sql_statement = (
             "INSERT INTO t_tlsh (tlsh_hash, id_file) VALUES (%s, %s)"
         )
         self.cursor.execute(sql_statement, values)
+
 
     def insert_ssdeep_hash(self, ssdeep_data, file_id):
         ssdeep_lines = ssdeep_data.split('\n')
