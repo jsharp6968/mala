@@ -86,9 +86,11 @@ def singleshot(filename, toolchain):
     exit()
 
 def run(args, mfh, target_files):
+    """
+    TODO: Split into more application state
+    """
     if args.single_tool:
         print("RUNNING IN SINGLE TOOL MODE")
-        time.sleep(4)
         log.debug("RUNNING IN SINGLE TOOL MODE")
         constants.TOOLCHAIN = [args.single_tool,]
     if args.singleshot:

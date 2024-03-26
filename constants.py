@@ -1,16 +1,19 @@
+import os
 DB_NAME = "mala"
 DB_HOST = "/var/run/postgresql"
 DB_USER = "mala_user"
-DB_PASS = "pass"
+DB_PASS = os.getenv('MALA_DB_PASS')
 
-THREAD_LIMIT = 32
+THREAD_LIMIT = os.cpu_count()
 MAX_STRING_CHAR_LIMIT = 2600
 FILE_HASH_BUFFER_SIZE = 8192
-SHR_CUTOFF = 9
+SHR_CUTOFF = 30
 
 MALA_OUTPUT_DIR = "/media/unknown/Malware Repo/malware/mala/mala"
 
 TOOLCHAIN = [
+    # Comment out what you don't want but
+    # strings *will* break if you don't use '-t,x' in your args
     "exiftool,-S,-j,-P",
     "strings,-t,x,-a,-n,6",
     "strings,-t,x,-a,-n,6,-e,l",

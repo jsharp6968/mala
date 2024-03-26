@@ -10,15 +10,18 @@ import numpy as np
 from collections import Counter
 from scipy.spatial.distance import cosine
 
+
 def calculate_entropy(text):
     """Calculate the Shannon entropy of a string."""
     probabilities = [float(text.count(c)) / len(text) for c in dict.fromkeys(list(text))]
     entropy = -sum(p * np.log2(p) for p in probabilities)
     return entropy
 
+
 def calculate_similarity(vector1, vector2):
     """Calculate cosine similarity between two vectors."""
     return 1 - cosine(vector1, vector2)
+
 
 def enhanced_human_readable(text):
     """
@@ -30,7 +33,7 @@ def enhanced_human_readable(text):
         return False, 0
 
     emergent = "e t1|oarinsl23dc87064m9u5pESACgfThby\"IvLDRw-_PO.NFx\\MW%VUkGHB:@,q?=];[(<Q'jX>)YKz$/Z*J+`^!&#~}{"
-    #emergent_freq = {char: idx for idx, char in enumerate(emergent, 1)}
+    #emergent_freq = {char: idx for idx, char in enumerate(emergent, 1)}    It's the same every time...
     emergent_freq = {'e': 1, ' ': 2, 't': 3, '1': 4, '|': 5, 'o': 6, 'a': 7, 'r': 8, 'i': 9, 'n': 10, 
     's': 11, 'l': 12, '2': 13, '3': 14, 'd': 15, 'c': 16, '8': 17, '7': 18, '0': 19, '6': 20, '4': 21, 
     'm': 22, '9': 23, 'u': 24, '5': 25, 'p': 26, 'E': 27, 'S': 28, 'A': 29, 'C': 30, 'g': 31, 'f': 32, 
@@ -47,10 +50,11 @@ def enhanced_human_readable(text):
 
     similarity_score = calculate_similarity(text_vector, emergent_vector)
     diversity_score = len(set(text)) / len(text)    # length independent
-    entropy_score = calculate_entropy(text)         # length independent
-    combined_score = similarity_score * 100 + diversity_score * 50 + entropy_score * 10
+    #entropy_score = calculate_entropy(text)         # length independent
+    combined_score = similarity_score * 100 + diversity_score * 50 #+ entropy_score * 10
 
     return combined_score > constants.SHR_CUTOFF, int(combined_score)
+
 
 def simple_human_readable(text):
     """
@@ -78,6 +82,7 @@ def simple_human_readable(text):
     if score_int > constants.SHR_CUTOFF:
         return True, score_int
     return False, 0
+
 
 def get_emergent(text):
     """Get all distinct characters by frequency descending from text."""
@@ -154,11 +159,19 @@ class ToolRunner():
 
 
     def parse_all_tool_cmdlines(self):
+        """
+        Split all toolchain entries into tool + args.
+        Store in self.
+        """
         for tool_cmdline in self.toolchain:
             self.parse_tool_cmdline(tool_cmdline)
 
 
     def execute_tool(self, malware_path, tool, args=[]):
+        """
+        Execute a tool with nullable args on an absolute path.
+        Returns an array of strings - lines.
+        """
         process = subprocess.Popen(
             [tool] + args + [malware_path],
             stdin=subprocess.PIPE,
@@ -169,6 +182,9 @@ class ToolRunner():
 
 
     def parse_tool_cmdline(self, tool_cmdline):
+        """
+        Split a toolchain entry into tool + args and return.
+        """
         tool_args = []
         if "," in tool_cmdline:
             tool_call = tool_cmdline.split(",")
@@ -186,6 +202,8 @@ class ToolRunner():
         Take the output of the strings linux binary and submit unique values to a
         heuristic function to evaluate the human readability of each line,
         which must exceed SHR_SCORE in order to return True.
+
+        - This assumes you are calling:  strings -t x __other_args__
         """
         strings = []
         scores = []

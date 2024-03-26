@@ -4,44 +4,8 @@ import random
 import psycopg2
 import logging as log
 from os.path import exists
-from psycopg2 import pool
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from constants import DB_NAME, DB_HOST, DB_USER, DB_PASS
-
-
-def create_table_from_json(table_name, json_dict):
-    # Mapping of JSON types to PostgreSQL types
-    type_mapping = {"int": "INTEGER", "float": "REAL", "str": "TEXT", "bool": "BOOLEAN"}
-
-    sql = f"CREATE TABLE {table_name} (id integer primary key, "
-    columns = []
-    for column, value in json_dict.items():
-        data_type = type(value).__name__
-        sql_type = type_mapping.get(
-            data_type, "TEXT"
-        )  # Default to TEXT if type is unknown
-        columns.append(f"{column} {sql_type}")
-
-    sql += ", ".join(columns)
-    sql += ");"
-    return sql
-
-
-def generate_insert_statement(data, table_name):
-    # All dictionary keys must match column names in every case
-    statement = f"INSERT INTO {table_name}("
-    column_names = data.keys()
-    values = data.values()
-    statement += ",".join([col for col in column_names]) + ") VALUES("
-    for value in values:
-        if isinstance(value, str):
-            value = value.replace("'", "''")
-            statement += "'" + value + "',"
-        else:
-            statement += str(value) + ","
-    statement = statement.rstrip(",")
-    statement += ")"
-    return statement
 
 
 class MalaDAO:
@@ -174,10 +138,8 @@ class MalaDAO:
         self.cursor.execute(sql_statement, values)
 
     def insert_ssdeep_hash(self, ssdeep_data, file_id):
-        
         ssdeep_lines = ssdeep_data.split('\n')
         ssdeep_hash = ssdeep_lines[1].split(',')[0]
-        #print(f"INSEEEERT {ssdeep_hash}")
         values = [ssdeep_hash, file_id]
         sql_statement = (
             "INSERT INTO t_ssdeep (ssdeep_hash, id_file) VALUES (%s, %s)"
@@ -196,7 +158,7 @@ class MalaDAO:
         """
         Get all file IDs which don't have any strings info.
         As getting distinct file ids requires a sequential scan,
-        it's efficient to just keep the sub-500 list of files in memory once.
+        it's efficient to just keep the smaller list of files in memory once.
         """
         sql = "select distinct id from t_file where id not in (select distinct id_file from t_stringinstance);"
         self.cursor.execute(sql)
