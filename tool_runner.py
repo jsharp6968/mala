@@ -11,11 +11,6 @@ from scipy.spatial.distance import cosine
 
 
 
-def calculate_similarity(vector1, vector2):
-    """Calculate cosine similarity between two vectors."""
-    return 1 - cosine(vector1, vector2)
-
-
 def enhanced_human_readable(text):
     """
     A heuristic function to evaluate the human readability of each line,
@@ -26,22 +21,11 @@ def enhanced_human_readable(text):
         return False, 0
 
     emergent = "e t1|oarinsl23dc87064m9u5pESACgfThby\"IvLDRw-_PO.NFx\\MW%VUkGHB:@,q?=];[(<Q'jX>)YKz$/Z*J+`^!&#~}{"
-    #emergent_freq = {char: idx for idx, char in enumerate(emergent, 1)}    It's the same every time...
-    emergent_freq = {'e': 1, ' ': 2, 't': 3, '1': 4, '|': 5, 'o': 6, 'a': 7, 'r': 8, 'i': 9, 'n': 10, 
-    's': 11, 'l': 12, '2': 13, '3': 14, 'd': 15, 'c': 16, '8': 17, '7': 18, '0': 19, '6': 20, '4': 21, 
-    'm': 22, '9': 23, 'u': 24, '5': 25, 'p': 26, 'E': 27, 'S': 28, 'A': 29, 'C': 30, 'g': 31, 'f': 32, 
-    'T': 33, 'h': 34, 'b': 35, 'y': 36, '"': 37, 'I': 38, 'v': 39, 'L': 40, 'D': 41, 'R': 42, 'w': 43, 
-    '-': 44, '_': 45, 'P': 46, 'O': 47, '.': 48, 'N': 49, 'F': 50, 'x': 51, '\\': 52, 'M': 53, 'W': 54, 
-    '%': 55, 'V': 56, 'U': 57, 'k': 58, 'G': 59, 'H': 60, 'B': 61, ':': 62, '@': 63, ',': 64, 'q': 65, 
-    '?': 66, '=': 67, ']': 68, ';': 69, '[': 70, '(': 71, '<': 72, 'Q': 73, "'": 74, 'j': 75, 'X': 76, 
-    '>': 77, ')': 78, 'Y': 79, 'K': 80, 'z': 81, '$': 82, '/': 83, 'Z': 84, '*': 85, 'J': 86, '+': 87, 
-    '`': 88, '^': 89, '!': 90, '&': 91, '#': 92, '~': 93, '}': 94, '{': 95}
-
     text_freq = Counter(text)
     text_vector = [text_freq.get(char, 0) for char in emergent]
     emergent_vector = list(range(len(emergent), 0, -1))
 
-    similarity_score = calculate_similarity(text_vector, emergent_vector)
+    similarity_score = 1 - cosine(text_vector, emergent_vector)
     diversity_score = len(set(text)) / len(text)    # length independent
     #entropy_score = calculate_entropy(text)         # length independent
     combined_score = similarity_score * 100 + diversity_score * 50 #+ entropy_score * 10
