@@ -8,6 +8,23 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from constants import DB_NAME, DB_HOST, DB_USER, DB_PASS
 
 
+def generate_insert_statement(data, table_name):
+    # All dictionary keys must match column names in every case
+    statement = f"INSERT INTO {table_name}("
+    column_names = data.keys()
+    values = data.values()
+    statement += ",".join([col for col in column_names]) + ") VALUES("
+    for value in values:
+        if isinstance(value, str):
+            value = value.replace("'", "''")
+            statement += "'" + value + "',"
+        else:
+            statement += str(value) + ","
+    statement = statement.rstrip(",")
+    statement += ")"
+    return statement
+
+
 class MalaDAO:
     def __init__(self):
         self.conn = psycopg2.connect(
@@ -88,7 +105,7 @@ class MalaDAO:
             return
         num_strings = len(strings)
         done_count = 0
-        step_size = 64
+        step_size = 128
         while not success:
             try:
                 self.cursor.callproc(

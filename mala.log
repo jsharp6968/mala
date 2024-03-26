@@ -183,3 +183,93 @@
 2024-03-26 01:04:38,608 - DEBUG - Thread finished. Processed: 6 Verified: 5 NEW:0 
 2024-03-26 01:04:38,631 - DEBUG - Thread finished. Processed: 5 Verified: 4 NEW:0 
 2024-03-26 01:04:38,689 - DEBUG - Thread finished. Processed: 4 Verified: 3 NEW:0 
+2024-03-26 01:17:56,552 - DEBUG - Starting mala with command "-d /home/unknown/code/mala/samples/extracted/vxug/InTheWild.0013/ --extracted -v"
+2024-03-26 01:17:56,553 - DEBUG - Checking target path /home/unknown/code/mala/samples/extracted/vxug/InTheWild.0013/
+2024-03-26 01:17:56,553 - DEBUG - Handling 0 malware samples.
+2024-03-26 01:18:19,923 - DEBUG - Starting mala with command "-d /home/unknown/code/mala/samples/extracted/vxug/InTheWild.0013/ --extracted"
+2024-03-26 01:18:19,923 - DEBUG - Checking target path /home/unknown/code/mala/samples/extracted/vxug/InTheWild.0013/
+2024-03-26 01:18:19,923 - DEBUG - Handling 0 malware samples.
+2024-03-26 01:19:43,320 - DEBUG - Starting mala with command "-d /home/unknown/code/mala/samples/extracted/vxug/InTheWild.0013/ --extracted"
+2024-03-26 01:19:43,320 - DEBUG - Checking target path /home/unknown/code/mala/samples/extracted/vxug/InTheWild.0013/
+2024-03-26 01:19:43,320 - DEBUG - Handling 0 malware samples.
+2024-03-26 01:20:09,473 - DEBUG - Starting mala with command "-d /home/unknown/code/mala/samples/extracted/vxug/InTheWild.0013/ --extracted"
+2024-03-26 01:20:09,473 - DEBUG - Checking target path /home/unknown/code/mala/samples/extracted/vxug/InTheWild.0013/
+2024-03-26 01:20:09,473 - DEBUG - Handling 0 malware samples.
+2024-03-26 01:23:04,521 - DEBUG - Starting mala with command "-d /home/unknown/code/mala/samples/extracted/vxug/InTheWild.0013/ --extracted"
+2024-03-26 01:23:04,521 - DEBUG - Checking target path /home/unknown/code/mala/samples/extracted/vxug/InTheWild.0013/
+2024-03-26 01:23:04,521 - DEBUG - Handling 0 malware samples.
+2024-03-26 01:23:26,736 - DEBUG - Starting mala with command "-d /home/unknown/code/mala/samples/extracted/vxug/InTheWild.0013/ --extracted"
+2024-03-26 01:23:26,736 - DEBUG - Checking target path /home/unknown/code/mala/samples/extracted/vxug/InTheWild.0013/
+2024-03-26 01:23:26,736 - DEBUG - Handling 0 malware samples.
+2024-03-26 01:24:48,372 - DEBUG - Starting mala with command "-d /home/unknown/code/mala/samples/extracted/vxug/InTheWild.0013/ --extracted"
+2024-03-26 01:24:48,372 - DEBUG - Checking target path /home/unknown/code/mala/samples/extracted/vxug/InTheWild.0013/
+2024-03-26 01:24:48,390 - DEBUG - Handling 20000 malware samples.
+2024-03-26 01:24:48,390 - DEBUG - Running with 32 threads and 32 chunks
+2024-03-26 01:24:51,724 - DEBUG - Thread finished. Processed: 5 Verified: 0 NEW:4 
+2024-03-26 01:24:51,724 - DEBUG - Thread finished. Processed: 7 Verified: 0 NEW:6 
+2024-03-26 01:24:51,724 - DEBUG - Thread finished. Processed: 8 Verified: 0 NEW:7 
+2024-03-26 01:24:51,725 - DEBUG - Thread finished. Processed: 8 Verified: 0 NEW:7 
+2024-03-26 01:24:51,724 - DEBUG - Thread finished. Processed: 7 Verified: 0 NEW:6 
+2024-03-26 01:24:51,727 - DEBUG - Thread finished. Processed: 5 Verified: 0 NEW:4 
+2024-03-26 01:24:51,727 - DEBUG - Thread finished. Processed: 6 Verified: 0 NEW:5 
+2024-03-26 01:24:51,724 - DEBUG - Thread finished. Processed: 8 Verified: 0 NEW:7 
+2024-03-26 01:24:51,727 - DEBUG - Thread finished. Processed: 8 Verified: 0 NEW:7 
+2024-03-26 01:24:51,727 - DEBUG - Thread finished. Processed: 8 Verified: 0 NEW:7 
+2024-03-26 01:24:51,729 - DEBUG - Thread finished. Processed: 7 Verified: 0 NEW:6 
+2024-03-26 01:24:51,728 - DEBUG - Thread finished. Processed: 7 Verified: 0 NEW:6 
+2024-03-26 01:24:51,728 - DEBUG - Thread finished. Processed: 7 Verified: 0 NEW:6 
+2024-03-26 01:24:51,729 - DEBUG - Thread finished. Processed: 8 Verified: 0 NEW:7 
+2024-03-26 01:24:51,729 - DEBUG - Thread finished. Processed: 7 Verified: 0 NEW:6 
+2024-03-26 01:24:51,729 - DEBUG - Thread finished. Processed: 7 Verified: 0 NEW:6 
+2024-03-26 01:24:51,730 - DEBUG - Thread finished. Processed: 6 Verified: 0 NEW:5 
+2024-03-26 01:24:51,730 - DEBUG - Thread finished. Processed: 7 Verified: 0 NEW:6 
+2024-03-26 01:24:51,730 - DEBUG - Thread finished. Processed: 7 Verified: 0 NEW:6 
+2024-03-26 01:24:51,730 - DEBUG - Thread finished. Processed: 7 Verified: 0 NEW:6 
+2024-03-26 01:24:51,731 - DEBUG - Thread finished. Processed: 5 Verified: 0 NEW:4 
+2024-03-26 01:24:51,731 - DEBUG - Thread finished. Processed: 7 Verified: 0 NEW:6 
+2024-03-26 01:24:51,731 - DEBUG - Thread finished. Processed: 7 Verified: 0 NEW:6 
+2024-03-26 01:24:51,731 - DEBUG - Thread finished. Processed: 7 Verified: 0 NEW:6 
+2024-03-26 01:24:51,731 - DEBUG - Thread finished. Processed: 7 Verified: 0 NEW:6 
+2024-03-26 01:24:51,731 - DEBUG - Thread finished. Processed: 8 Verified: 0 NEW:7 
+2024-03-26 01:24:51,731 - DEBUG - Thread finished. Processed: 8 Verified: 0 NEW:7 
+2024-03-26 01:24:51,732 - DEBUG - Thread finished. Processed: 7 Verified: 0 NEW:6 
+2024-03-26 01:24:51,733 - DEBUG - Thread finished. Processed: 7 Verified: 0 NEW:6 
+2024-03-26 01:24:51,733 - DEBUG - Thread finished. Processed: 7 Verified: 0 NEW:6 
+2024-03-26 01:24:51,733 - DEBUG - Thread finished. Processed: 6 Verified: 0 NEW:5 
+2024-03-26 01:24:51,738 - DEBUG - Thread finished. Processed: 7 Verified: 0 NEW:6 
+2024-03-26 01:25:39,595 - DEBUG - Starting mala with command "-d /home/unknown/code/mala/samples/extracted/vxug/InTheWild.0013/ --extracted"
+2024-03-26 01:25:39,595 - DEBUG - Checking target path /home/unknown/code/mala/samples/extracted/vxug/InTheWild.0013/
+2024-03-26 01:25:39,612 - DEBUG - Handling 20000 malware samples.
+2024-03-26 01:25:39,612 - DEBUG - Running with 32 threads and 32 chunks
+2024-03-26 01:30:31,588 - DEBUG - Thread finished. Processed: 625 Verified: 0 NEW:625 
+2024-03-26 01:30:32,010 - DEBUG - Thread finished. Processed: 625 Verified: 0 NEW:625 
+2024-03-26 01:30:32,187 - DEBUG - Thread finished. Processed: 625 Verified: 0 NEW:625 
+2024-03-26 01:30:33,311 - DEBUG - Thread finished. Processed: 625 Verified: 0 NEW:625 
+2024-03-26 01:30:34,503 - DEBUG - Thread finished. Processed: 625 Verified: 0 NEW:625 
+2024-03-26 01:30:34,522 - DEBUG - Thread finished. Processed: 625 Verified: 0 NEW:625 
+2024-03-26 01:30:34,929 - DEBUG - Thread finished. Processed: 625 Verified: 0 NEW:625 
+2024-03-26 01:30:34,985 - DEBUG - Thread finished. Processed: 625 Verified: 0 NEW:625 
+2024-03-26 01:30:35,153 - DEBUG - Thread finished. Processed: 625 Verified: 0 NEW:625 
+2024-03-26 01:30:35,342 - DEBUG - Thread finished. Processed: 625 Verified: 0 NEW:625 
+2024-03-26 01:30:35,362 - DEBUG - Thread finished. Processed: 625 Verified: 0 NEW:625 
+2024-03-26 01:30:35,396 - DEBUG - Thread finished. Processed: 625 Verified: 0 NEW:625 
+2024-03-26 01:30:36,012 - DEBUG - Thread finished. Processed: 625 Verified: 0 NEW:625 
+2024-03-26 01:30:36,034 - DEBUG - Thread finished. Processed: 625 Verified: 0 NEW:625 
+2024-03-26 01:30:36,082 - DEBUG - Thread finished. Processed: 625 Verified: 0 NEW:625 
+2024-03-26 01:30:36,356 - DEBUG - Thread finished. Processed: 625 Verified: 0 NEW:625 
+2024-03-26 01:30:36,677 - DEBUG - Thread finished. Processed: 625 Verified: 0 NEW:625 
+2024-03-26 01:30:36,814 - DEBUG - Thread finished. Processed: 625 Verified: 0 NEW:625 
+2024-03-26 01:30:37,153 - DEBUG - Thread finished. Processed: 625 Verified: 0 NEW:625 
+2024-03-26 01:30:37,221 - DEBUG - Thread finished. Processed: 625 Verified: 0 NEW:625 
+2024-03-26 01:30:37,552 - DEBUG - Thread finished. Processed: 625 Verified: 0 NEW:625 
+2024-03-26 01:30:37,702 - DEBUG - Thread finished. Processed: 625 Verified: 0 NEW:625 
+2024-03-26 01:30:38,514 - DEBUG - Thread finished. Processed: 625 Verified: 0 NEW:625 
+2024-03-26 01:30:38,889 - DEBUG - Thread finished. Processed: 625 Verified: 0 NEW:625 
+2024-03-26 01:30:38,948 - DEBUG - Thread finished. Processed: 625 Verified: 0 NEW:625 
+2024-03-26 01:30:39,090 - DEBUG - Thread finished. Processed: 625 Verified: 0 NEW:625 
+2024-03-26 01:30:39,354 - DEBUG - Thread finished. Processed: 625 Verified: 0 NEW:625 
+2024-03-26 01:30:40,287 - DEBUG - Thread finished. Processed: 625 Verified: 0 NEW:625 
+2024-03-26 01:30:40,851 - DEBUG - Thread finished. Processed: 625 Verified: 0 NEW:625 
+2024-03-26 01:30:41,958 - DEBUG - Thread finished. Processed: 625 Verified: 0 NEW:625 
+2024-03-26 01:30:42,206 - DEBUG - Thread finished. Processed: 625 Verified: 0 NEW:625 
+2024-03-26 01:30:43,149 - DEBUG - Thread finished. Processed: 625 Verified: 0 NEW:625 
