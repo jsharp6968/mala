@@ -31,3 +31,5 @@ TOOL_TABLES = {
     "diec": ["t_diec", "t_diec_meta", "t_diec_ent"],
     "ssdeep": "t_ssdeep",
 }
+
+EMERGENT = "e t1|oarinsl23dc87064m9u5pESACgfThby\"IvLDRw-_PO.NFx\\MW%VUkGHB:@,q?=];[(<Q'jX>)YKz$/Z*J+`^!&#~}{"

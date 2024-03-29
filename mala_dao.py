@@ -77,6 +77,7 @@ class MalaDAO:
             return None
         return result[0]
 
+
     def insert_malware_file(self, data: dict, cursor=None):
         """Insert one malware file into the DB."""
         insert_statement = generate_insert_statement(data, "t_file") + " returning id;"
@@ -95,6 +96,7 @@ class MalaDAO:
             log.debug(insert_statement)
 
         return inserted_id
+
 
     def insert_string_instances(self, strings, scores, addresses, file_id):
         """

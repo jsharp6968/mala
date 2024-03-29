@@ -5,7 +5,7 @@ import json
 import hashlib
 import constants
 import logging as log
-from constants import FILE_HASH_BUFFER_SIZE, SHR_CUTOFF, MAX_STRING_CHAR_LIMIT
+from constants import FILE_HASH_BUFFER_SIZE, SHR_CUTOFF, MAX_STRING_CHAR_LIMIT, EMERGENT
 from collections import Counter
 from scipy.spatial.distance import cosine
 
@@ -20,10 +20,9 @@ def enhanced_human_readable(text):
     if len(text) > constants.MAX_STRING_CHAR_LIMIT:
         return False, 0
 
-    emergent = "e t1|oarinsl23dc87064m9u5pESACgfThby\"IvLDRw-_PO.NFx\\MW%VUkGHB:@,q?=];[(<Q'jX>)YKz$/Z*J+`^!&#~}{"
     text_freq = Counter(text)
-    text_vector = [text_freq.get(char, 0) for char in emergent]
-    emergent_vector = list(range(len(emergent), 0, -1))
+    text_vector = [text_freq.get(char, 0) for char in EMERGENT]
+    emergent_vector = list(range(len(EMERGENT), 0, -1))
 
     similarity_score = 1 - cosine(text_vector, emergent_vector)
     diversity_score = len(set(text)) / len(text)    # length independent
@@ -45,13 +44,11 @@ def simple_human_readable(text):
     if len(text) > constants.MAX_STRING_CHAR_LIMIT:
         return False, 0
 
-    emergent = """e t1|oarinsl23dc87064m9u5pESACgfThby"IvLDRw-_PO.NFx\MW%VUkGHB:@,q?=];[(<Q'jX>)YKz$/Z*J+`        ^!&#~}{"""
-
     # Used to be "etaoinshrdlucmfgypwbvkxjqz" - the above is calculated from top 10k common strings
     score = 0
     for char in text:
-        if char in emergent:
-            score += len(emergent) - emergent.index(char)
+        if char in EMERGENT:
+            score += len(EMERGENT) - EMERGENT.index(char)
     if score == 0:
         return False, 0
     score_float = float((score * 1.0) / (len(text)))
@@ -73,16 +70,16 @@ def get_emergent(text):
     sorted_chars = dict(sorted(chars.items(), 
                     key=lambda item: item[1], 
                     reverse=True))
-    return chars
+    return sorted_chars
 
 
 class ToolRunner():
     def __init__(self, dao, toolchain, single_tool=None):
         self.dao = dao
         self.tool_configs = {}
+        self.toolchain = toolchain
         if single_tool:
             self.toolchain = [single_tool,]
-        self.toolchain = toolchain
         self.parse_all_tool_cmdlines()
         
 
@@ -115,6 +112,7 @@ class ToolRunner():
             print(f"We don't have a file id for file {file}")
             inserted_id = -1
         return inserted_id, False
+
 
     def get_file_hashes(self, file_path):
         """
