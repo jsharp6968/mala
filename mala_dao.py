@@ -108,7 +108,9 @@ class MalaDAO:
         arrays are being inserted, there is a conflict between the two transactions.
         """
         success = False
+        
         if len(strings) == 0:
+            print(f"No strings to process for file {file_id}")
             return
         num_strings = len(strings)
         done_count = 0
@@ -135,10 +137,11 @@ class MalaDAO:
                     "insert_string_instances", 
                     (
                         strings, 
-                        file_id,
+                        int(file_id),
                         addresses)
                 )
         except Exception as e:
+            print("CRASHED IN DAO.insert_string_instances")
             print(e)
 
 

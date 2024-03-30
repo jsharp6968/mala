@@ -17,8 +17,8 @@ def enhanced_human_readable(text):
     which must exceed SHR_CUTOFF in order to return True.
     This version is a bit more complex to prevent strings like 'eee' scoring
     as the highest in the DB."""
-    if len(text) > constants.MAX_STRING_CHAR_LIMIT:
-        return False, 0
+    if len(text) > constants.MAX_STRING_CHAR_LIMIT or len(text) == 0:
+        return 0
 
     text_freq = Counter(text)
     text_vector = [text_freq.get(char, 0) for char in EMERGENT]
@@ -29,7 +29,7 @@ def enhanced_human_readable(text):
     #entropy_score = calculate_entropy(text)         # length independent
     combined_score = similarity_score * 100 + diversity_score * 50 #+ entropy_score * 10
 
-    return combined_score > constants.SHR_CUTOFF, int(combined_score)
+    return int(combined_score)
 
 
 def simple_human_readable(text):
@@ -145,7 +145,7 @@ class ToolRunner():
     def execute_tool(self, malware_path, tool, args=[]):
         """
         Execute a tool with nullable args on an absolute path.
-        Returns an array of strings - lines.
+        Returns a string.
         """
         process = subprocess.Popen(
             [tool] + args + [malware_path],
@@ -172,7 +172,7 @@ class ToolRunner():
         return tool, tool_args
 
     
-    def parse_strings_data(self, tool_data):
+    def parse_strings_data(self, tool_data_string):
         """
         Take the output of the strings linux binary and submit unique values to a
         heuristic function to evaluate the human readability of each line,
@@ -180,29 +180,31 @@ class ToolRunner():
 
         - This assumes you are calling:  strings -t x __other_args__
         """
+        if len(tool_data_string) < 9:
+            return [], [], []
         strings = []
         scores = []
         addresses = []
-        count = 0
+        tool_data = tool_data_string.split("\n")
+        continue_count = 0
         for line in tool_data:
-            count += 1
             try:
-                line = line.strip()
-                if not " " in line or line is None:
+                line = line.lstrip()
+                if not " " in line or len(line) < 9:
                     continue
+                
                 line_items = line.split(" ", 1)
                 address = line_items[0]
-                string = line_items[1]
+                string = line_items[1].strip()
                 #result_tuple = simple_human_readable(string)
-                result_tuple = enhanced_human_readable(string)
-                result = result_tuple[0]
-                score = result_tuple[1]
-                if result:
+                score = enhanced_human_readable(string)
+                if score > constants.SHR_CUTOFF:
                     strings.append(string)
                     addresses.append(address if len(address) % 2 == 0 else '0' + address)
                     scores.append(score)
             except Exception as e:
-                print(e)            
+                print("CRASHED IN PSD")
+                print(e)  
         return strings, scores, addresses
 
 
