@@ -4,7 +4,7 @@ import psycopg2
 import logging as log
 from os.path import exists
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
-from constants import DB_NAME, DB_HOST, DB_USER, DB_PASS
+from constants import DB_NAME, DB_HOST, DB_PORT, DB_USER, DB_PASS
 
 
 def generate_insert_statement(data, table_name):
@@ -26,12 +26,21 @@ def generate_insert_statement(data, table_name):
 
 class MalaDAO:
     def __init__(self):
-        self.conn = psycopg2.connect(
-            host=DB_HOST,
-            dbname=DB_NAME,
-            user=DB_USER,
-            password=DB_PASS,
-        )
+        if DB_HOST == '/var/run/postgresql':
+            self.conn = psycopg2.connect(
+                host=DB_HOST,
+                dbname=DB_NAME,
+                user=DB_USER,
+                password=DB_PASS,
+            )
+        else:
+            self.conn = psycopg2.connect(
+                host=DB_HOST,
+                port=DB_PORT,
+                dbname=DB_NAME,
+                user=DB_USER,
+                password=DB_PASS,
+            )
         self.conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         self.cursor = self.conn.cursor()
 

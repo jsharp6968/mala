@@ -8,6 +8,7 @@ By default mala will attempt to use `tlsh`, `strings`, `exiftool`, `diec` and `s
 Mala uses subprocess - anything you can run, it can run.
 
 # Run
+Mala defaults to using a Unix socket, which Postgres does not make available unless the relevant line of the `postgresql.conf` is uncommented. If you want to use the network stack (or a remote/LAN DB) then change the DB_HOST value in `constants.py`.
 Example with extracted archive:
 `python main.py -d /home/unknown/code/mala/samples/extracted/vxug/InTheWild.0013/ --extracted`
 
