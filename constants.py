@@ -1,7 +1,7 @@
 import os
-DB_NAME = "mala1"
+DB_NAME = "mala"
 DB_HOST = "/var/run/postgresql"
-DB_USER = "mala_user1"
+DB_USER = "mala_user"
 DB_PASS = os.getenv('MALA_DB_PASS')
 
 THREAD_LIMIT = os.cpu_count()
