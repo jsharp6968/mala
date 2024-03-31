@@ -1,4 +1,5 @@
 import os, datetime, hashlib, json, py7zr
+import logging as log
 from mala_dao import MalaDAO
 import constants
 
@@ -13,7 +14,6 @@ class MalaFileHandler():
         archive_name = os.path.basename(archive_path)
         result = self.dao.search_package(archive_name)
         if result:
-            #[(1, '77aff9a29d2c1f8aed1263e5ea8b4970', 'Virusshare.00486.7z', '/home/unknown/code/mala/samples/input/Virusshare.00486.7z', 7449158800, datetime.datetime(2024, 4, 1, 0, 16, 27))]
             archive_data = result[0]
             archive_dict = {
                 "id": archive_data[0],
@@ -30,8 +30,9 @@ class MalaFileHandler():
             if known_ratio >= 0.9:
                 # Sometimes archives contain files which cannot for whatever reason be hashed
                 # They might be too small or broken/corrupted in some way
+                # Or they could be known from a previous package
                 # This is why a threshold is needed
-                print(f"Archive {archive_name} is {known_ratio*100}% known to the DB.")
+                log.debug(f"Archive {archive_name} is {known_ratio*100}% known to the DB.")
                 print(json.dumps(archive_dict, indent=4))
                 return True
         else:
@@ -53,7 +54,8 @@ class MalaFileHandler():
             "date_ingested": ingestion_date,
             "fcount": fcount
         }
-        self.dao.insert_package(archive_data)
+        package_id = self.dao.insert_package(archive_data)
+        return package_id
 
 
     def get_archive_info(self, file_path):
@@ -87,6 +89,8 @@ class MalaFileHandler():
                         if not self.check_archive_known(full_path):
                             self.add_archive(full_path)
                             seven_z_files.append(full_path)
+                    else:
+                        seven_z_files.append(full_path)
         seven_z_files = list(set(seven_z_files))
         return seven_z_files
 
