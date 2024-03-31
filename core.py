@@ -61,11 +61,13 @@ def worker_function(file_chunk, toolchain, single=None):
         for file in file_chunk:
             count += 1
             file_id, already_known = tool_runner.get_file_data(file)
-            if already_known and single is None:
-                tool_runner.verify_all_tools(file_id)
-                log.debug(f"Verified file {file_id}")
-                verified += 1
+            if already_known:
+                if verify:
+                    tool_runner.verify_all_tools(file_id)
+                    log.debug(f"Verified file {file_id}")
+                    verified += 1
                 continue
+                
             tool_runner.execute_all_tools(file_id, file)
             handled += 1
     except Exception as e:
