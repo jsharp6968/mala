@@ -97,6 +97,23 @@ def create_file_table(conn):
     execute_sql(conn, sql)
 
 
+def create_packages_table(conn):
+    """
+    A table for ingested archives from sources like VXUG and Virusshare etc.
+    """
+    sql = "CREATE TABLE IF NOT EXISTS t_packages (id serial primary key, "
+    columns = [
+        "md5 CHAR(32)",
+        "basename text",
+        "path text",
+        "fsize integer",
+        "date_ingested timestamp without time zone",
+    ]
+    sql += ", ".join(columns)
+    sql += ");"
+    execute_sql(conn, sql)
+
+
 def create_strings_table(conn):
     sql = "CREATE TABLE IF NOT EXISTS t_strings (id serial primary key, "
     columns = [

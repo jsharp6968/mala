@@ -46,7 +46,7 @@ def write_output(target_path, tool_output):
             outfile.write("\n".join(tool_output))
 
 
-def worker_function(file_chunk, toolchain, single=None):
+def worker_function(file_chunk, toolchain, verify=None):
     """
     The main worker function of the program. Is a process run by concurrent futures.
     Creates its own DAO and ToolRunner, parses the tools list and processes a chunk
@@ -119,18 +119,11 @@ def run(args, mfh, target_files):
     ]
     log.debug(f"Running with {constants.THREAD_LIMIT} threads and {len(file_chunks)} chunks")
     with c_futures.ProcessPoolExecutor(max_workers=constants.THREAD_LIMIT) as executor:
-        if args.single_tool:
-            futures = [
-                executor.submit(worker_function, file_chunk, constants.TOOLCHAIN, single=True)
-                for file_chunk in file_chunks
-            ]
-            c_futures.wait(futures)
-        else:
-            futures = [
-                executor.submit(worker_function, file_chunk, constants.TOOLCHAIN)
-                for file_chunk in file_chunks
-            ]
-            c_futures.wait(futures)
+        futures = [
+            executor.submit(worker_function, file_chunk, constants.TOOLCHAIN, verify=args.verify)
+            for file_chunk in file_chunks
+        ]
+        c_futures.wait(futures)
     return target_files
 
 

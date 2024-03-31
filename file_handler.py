@@ -1,8 +1,16 @@
 import os
+from mala_dao import MalaDAO
 
 class MalaFileHandler():
     def __init__(self, root_dir):
         self.root_dir = root_dir
+        self.dao = MalaDAO()
+
+
+    def check_archive_known(self, archive_name):
+        pass
+
+
 
     def find_7z_files(self):
         """

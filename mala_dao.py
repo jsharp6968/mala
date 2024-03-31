@@ -73,6 +73,10 @@ class MalaDAO:
         return result[0]
 
 
+    def check_package_known(self, package_name):
+        sql = f"select * from t_packages where package_name = {package_name}"
+
+
     def get_via_sha256(self, sha256):
         """Get a file id by SHA256. If None, the file is unknown."""
         statement = f"select id from t_file where sha256 = '{sha256}' limit 1;"
