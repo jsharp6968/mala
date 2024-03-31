@@ -102,13 +102,14 @@ def create_packages_table(conn):
     """
     A table for ingested archives from sources like VXUG and Virusshare etc.
     """
-    sql = "CREATE TABLE IF NOT EXISTS t_packages (id serial primary key, "
+    sql = "CREATE TABLE IF NOT EXISTS t_package (id serial primary key, "
     columns = [
-        "md5 CHAR(32)",
+        "md5 CHAR(32) unique",
         "basename text",
         "path text",
-        "fsize integer",
+        "fsize bigint",
         "date_ingested timestamp without time zone",
+        "fcount integer",
     ]
     sql += ", ".join(columns)
     sql += ");"

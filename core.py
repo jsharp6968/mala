@@ -125,6 +125,9 @@ def run(args, mfh, target_files):
     if len(target_files) > args.filelimit and args.filelimit > 0:
         target_files = target_files[:args.filelimit]
 
+    if len(target_files) == 0:
+        print("No files to process, exiting.")
+        return target_files
     log.debug(f"Handling {len(target_files)} malware samples.")
     chunk_size = len(target_files) // constants.THREAD_LIMIT
     file_chunks = [

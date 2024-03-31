@@ -73,8 +73,11 @@ class MalaDAO:
         return result[0]
 
 
-    def check_package_known(self, package_name):
-        sql = f"select * from t_packages where package_name = {package_name}"
+    def search_package(self, package_name):
+        sql = f"select * from t_package where basename = '{package_name}';"
+        self.cursor.execute(sql)
+        result = self.cursor.fetchall()
+        return result
 
 
     def get_via_sha256(self, sha256):
@@ -91,9 +94,7 @@ class MalaDAO:
         return result[0]
 
 
-    def insert_malware_file(self, data: dict, cursor=None):
-        """Insert one malware file into the DB."""
-        insert_statement = generate_insert_statement(data, "t_file") + " returning id;"
+    def insert_statement_returning_id(self, insert_statement):
         inserted_id = -1
         try:
             self.cursor.execute(insert_statement)
@@ -105,9 +106,41 @@ class MalaDAO:
                 inserted_id = result[0]
         except Exception as e:
             log.debug(repr(e))
-            log.debug("Error inserting file data in MalaDao.")
+            log.debug("Error inserting data in MalaDao.")
             log.debug(insert_statement)
+        return inserted_id
+    
 
+    def insert_data_returning_id(self, data:dict, table_name):
+        insert_statement = generate_insert_statement(data, table_name) + "returning id;"
+        this_id = self.insert_statement_returning_id(insert_statement)
+        return this_id
+
+    
+    def get_package_file_rowcount(self,  package_name):
+        sql = f"select count(distinct tf.id) from t_file tf where path like '%/{package_name}/%'"
+        self.cursor.execute(sql)
+        try:
+            result = self.cursor.fetchone()
+            if result is None:
+                return None
+        except Exception as e:
+            log.debug(e)
+            return None
+        return result[0]
+
+
+    def insert_package(self, data: dict):
+        """
+        Insert one malware archive into the DB."""
+        inserted_id = self.insert_data_returning_id(data, "t_package")
+        return inserted_id
+
+
+    def insert_malware_file(self, data: dict):
+        """
+        Insert one malware file into the DB."""
+        inserted_id = self.insert_data_returning_id(data, "t_file")
         return inserted_id
 
 

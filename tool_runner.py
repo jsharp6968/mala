@@ -5,6 +5,8 @@ import json
 import hashlib
 import constants
 import logging as log
+import uuid
+from memray import Tracker
 from constants import FILE_HASH_BUFFER_SIZE, SHR_CUTOFF, MAX_STRING_CHAR_LIMIT, EMERGENT
 from collections import Counter
 from scipy.spatial.distance import cosine
@@ -42,20 +44,18 @@ def simple_human_readable(text):
     Would be interesting to train this on whatever language/dataset you want to
     score highly/search for."""
     if len(text) > constants.MAX_STRING_CHAR_LIMIT:
-        return False, 0
+        return 0
 
     # Used to be "etaoinshrdlucmfgypwbvkxjqz" - the above is calculated from top 10k common strings
     score = 0
     for char in text:
-        if char in EMERGENT:
-            score += len(EMERGENT) - EMERGENT.index(char)
+        # This is prone to score very highly for "eeeeeeeeeeeee" 
+        score += len(EMERGENT) - EMERGENT.find(char)
     if score == 0:
-        return False, 0
+        return 0
     score_float = float((score * 1.0) / (len(text)))
     score_int = int(score_float)
-    if score_int > constants.SHR_CUTOFF:
-        return True, score_int
-    return False, 0
+    return score_int
 
 
 def get_emergent(text):
@@ -89,7 +89,7 @@ class ToolRunner():
         Insert it into the DB if not.
         """
         md5, sha256, sha1, fsize = self.get_file_hashes(file)
-        existing_id =  self.dao.get_via_sha256(sha256)
+        existing_id = self.dao.get_via_sha256(sha256)
         if existing_id is not None:
             # File is already known to the DB
             return existing_id, True
