@@ -44,6 +44,7 @@ def setup():
     create_string_insert_sp(setup_conn)
     create_string_instance_sp(setup_conn)
     create_ssdeep_table(setup_conn)
+    create_packages_table(setup_conn)
     print("Completed setup!")
 
 

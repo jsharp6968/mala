@@ -14,6 +14,9 @@ class MalaArgParser():
             "-e", "--extracted", action="store_true", help="All samples already extracted."
         )
         parser.add_argument(
+            "-p", "--package", action="store_true", help="Input directory contains packages malware samples."
+        )
+        parser.add_argument(
             "-s", "--singleshot", action="store_true", help="Ingest one malware sample."
         )
         parser.add_argument(

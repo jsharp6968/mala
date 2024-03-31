@@ -22,15 +22,28 @@ def extract_sample(path, dest):
         os.chmod(dest, 0o644)
 
 
-def handle_extraction(file, dest_dir):
+def extract_package(path, dest):
+    """
+    Py7zr extraction of an archive.
+    Assumes the password is 'infected'.
+    """
+    with py7zr.SevenZipFile(path, mode="r", password="infected") as z:
+        z.extractall(path=dest)
+
+
+def handle_extraction(file, dest_dir, package=False):
     """
     Check for, create if not exists the unzipped file without .7z extension.
+    If the extraction result is a directory, pass it back.
     """
     basename = os.path.basename(file)
     target_path = os.path.join(dest_dir, basename.replace(".7z", ""))
     try:
         if not os.path.exists(target_path):
-            extract_sample(file, dest_dir)
+            if package:
+                extract_package(file, dest_dir)
+            else:
+                extract_sample(file, dest_dir)
     except:
         log.debug("Failed to extract ", file, target_path)
 
@@ -105,7 +118,7 @@ def run(args, mfh, target_files):
         print(f"Time:{runtime:.6f} seconds.")
         log.debug(f"Handled this malware sample in {runtime:.6f} seconds.")
         exit()
-    if args.extracted:
+    if args.extracted and not target_files:
         log.debug(f"Checking target path {args.dir}")
         target_files = mfh.get_all_file_paths()
 
@@ -127,17 +140,24 @@ def run(args, mfh, target_files):
     return target_files
 
 
-    def unzip_files(mfh, args):
-        target_files = mfh.find_7z_files()
-        if target_files:
-            with c_futures.ProcessPoolExecutor(max_workers=constants.THREAD_LIMIT) as executor:
-                futures = [
-                    executor.submit(handle_extraction, file, args.dest_dir)
-                    for file in target_files
-                ]
-                c_futures.wait(futures)
+def unzip_files(mfh, args):
+    target_files = mfh.find_7z_files()
+    if target_files:
+        with c_futures.ProcessPoolExecutor(max_workers=constants.THREAD_LIMIT) as executor:
+            futures = [
+                executor.submit(handle_extraction, file, args.dest_dir, args.package)
+                for file in target_files
+            ]
+            c_futures.wait(futures)
 
-        log.debug(f"Extracted all {len(target_files)} files.")
-        return target_files
-        
-
+    log.debug(f"Extracted all {len(target_files)} files.")
+    if args.package:
+        new_target_files = []
+        for target_file in target_files:
+            # In the dest dir, find the filename without .7z extension, walk its contents and return into target_files
+            extracted_dir = os.path.basename(target_file.replace('.7z', ''))
+            abs_dirpath = os.path.join(args.dest_dir, extracted_dir)
+            if os.path.exists(abs_dirpath) and os.path.isdir(abs_dirpath):
+                new_target_files += mfh.get_all_file_paths(abs_dirpath)
+        target_files = new_target_files
+    return target_files

@@ -19,19 +19,21 @@ class MalaFileHandler():
         seven_z_files = []
         for dirpath, dirnames, filenames in os.walk(self.root_dir):
             for file in filenames:
-                if os.path.isfile(file) and file.endswith(".7z"):
+                if file.endswith(".7z"):
                     full_path = os.path.join(dirpath, file)
                     seven_z_files.append(full_path)
         seven_z_files = list(set(seven_z_files))
         return seven_z_files
 
 
-    def get_all_file_paths(self):
+    def get_all_file_paths(self, path=None):
         """
         Recursively searches for non .7z and returns their absolute paths.
         """
+        if not path:
+            path = self.root_dir
         extracted_files = []
-        for dirpath, dirnames, filenames in os.walk(self.root_dir):
+        for dirpath, dirnames, filenames in os.walk(path):
             for file in filenames:
                 if not file.endswith(".7z"):
                     full_path = os.path.join(dirpath, file)
