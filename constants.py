@@ -16,8 +16,9 @@ TOOLCHAIN = [
     # Comment out what you don't want but
     # strings *will* break if you don't use '-t,d' in your args
     "exiftool,-S,-j,-P",
-    "strings,-t,d,-a,-n,6",
-    "strings,-t,d,-a,-n,6,-e,l",
+    #"strings,-t,d,-a,-n,6",
+    #"strings,-t,d,-a,-n,6,-e,l",
+    "mala_strings",
     "diec,-je",
     "diec,-jd",
     "tlsh,-ojson,-f",
