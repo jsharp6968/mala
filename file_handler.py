@@ -60,17 +60,14 @@ class MalaFileHandler():
 
     def get_archive_info(self, file_path):
         """
-        Get filesize, MD5, SHA1 and SHA256.
+        Get filesize and MD5.
         """
-
         hash_md5 = hashlib.md5()
         fsize = 0
-
         with open(file_path, "rb") as file:
             for chunk in iter(lambda: file.read(constants.FILE_HASH_BUFFER_SIZE * 2), b""):
                 hash_md5.update(chunk)
                 fsize += len(chunk)
-
         return hash_md5.hexdigest(), fsize
 
 
