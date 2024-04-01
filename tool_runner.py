@@ -298,6 +298,7 @@ class ToolRunner():
             tool_config = self.tool_configs[key]
             if tool_config[0] == "strings":
                 # Strings needs to be handled in a bulk query
+                # Cannot currently be verified, this should be done manually in the DB
                 continue
             target_table = table_mapping[tool_config[0]]
             if isinstance(target_table, list):
