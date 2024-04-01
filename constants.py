@@ -14,10 +14,10 @@ MALA_OUTPUT_DIR = "/media/unknown/Malware Repo/malware/mala/mala"
 
 TOOLCHAIN = [
     # Comment out what you don't want but
-    # strings *will* break if you don't use '-t,x' in your args
+    # strings *will* break if you don't use '-t,d' in your args
     "exiftool,-S,-j,-P",
-    "strings,-t,x,-a,-n,6",
-    "strings,-t,x,-a,-n,6,-e,l",
+    "strings,-t,d,-a,-n,6",
+    "strings,-t,d,-a,-n,6,-e,l",
     "diec,-je",
     "diec,-jd",
     "tlsh,-ojson,-f",

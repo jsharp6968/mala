@@ -186,7 +186,6 @@ class ToolRunner():
         scores = []
         addresses = []
         tool_data = tool_data_string.split("\n")
-        continue_count = 0
         for line in tool_data:
             try:
                 line = line.lstrip()
@@ -194,13 +193,13 @@ class ToolRunner():
                     continue
                 
                 line_items = line.split(" ", 1)
-                address = line_items[0]
-                string = line_items[1].strip()
+                string = line_items[1].lstrip()
                 #result_tuple = simple_human_readable(string)
                 score = enhanced_human_readable(string)
                 if score > constants.SHR_CUTOFF:
                     strings.append(string)
-                    addresses.append(address if len(address) % 2 == 0 else '0' + address)
+                    #addresses.append(line_items[0] if len(line_items[0]) % 2 == 0 else '0' + line_items[0])
+                    addresses.append(int(line_items[0]))
                     scores.append(score)
             except Exception as e:
                 print("CRASHED IN PSD")

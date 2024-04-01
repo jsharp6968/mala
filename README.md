@@ -1,5 +1,5 @@
 # mala
-Mala is a tool to ingest static malware analysis tool output at scale and store it in a DB. The goal is to enable deep analysis across a large corpus of malware.
+Mala can run a toolchain on your whole malware zoo and store all the output in a DB. The goal is to enable deep analysis across a large corpus of malware.
 
 Mala will ingest directory structures of malware samples, extracting them from .7z files first if needed, and then check if the file is known (by SHA256) and if not, add it. It can skip archives it has already successfully processed also. Then it will process a toolchain on each file and store the output for each tool in a separate table.
 
@@ -12,7 +12,7 @@ Mala uses subprocess - anything you can run, it can run. Just add your tools to 
 `"exiftool,-S,-j,-P"`
 
 ## Run
-Mala defaults to using a Unix socket, which Postgres does not make available unless the relevant line of the `postgresql.conf` is uncommented. If you want to use the network stack (or a remote/LAN DB) then change the DB_HOST value in `constants.py`.
+Mala defaults to using a Unix socket, which Postgres does not make available unless the relevant line of the `postgresql.conf` is uncommented. If you want to use the network stack over localhost (or a remote/LAN DB) then change the DB_HOST value in `constants.py`.
 
 If you want to extract archives and then process the contents, specify both the `-d` arg for where the .7z files are, and the `-dd` arg for where those archives should all be extracted to like so:
 
@@ -60,9 +60,9 @@ By default, mala ships with some basic tools as follows:
 
 `exiftool,-S,-j,-P` - Exiftool, very short fomat, json output format, preserve file modtime
 
-`strings,-t,x,-a,-n,6` - Strings, output with address in hex format, all sections, 6 chars minimum
+`strings,-t,d,-a,-n,6` - Strings, output with address in decimal format, all sections, 6 chars minimum
 
-`strings,-t,x,-a,-n,6,-e,l` - Strings, output with address in hex format, all sections, 6 chars minimum, 16-bit littleendian encoding
+`strings,-t,d,-a,-n,6,-e,l` - Strings, output with address in decimal format, all sections, 6 chars minimum, 16-bit littleendian encoding
 
 `diec,-je` - DetectItEasy compiled in C, output in json format, entropy scan
 
@@ -75,7 +75,7 @@ By default, mala ships with some basic tools as follows:
 ### Strings
 Strings is probably the most interesting tool in the basic toolkit. There is all kinds of interesting data to be found in your `t_strings` table, like passwords, keys, crypto wallet addresses, URLs, domains, email addresses, tool cmdlines etc.
 
-The `t_strings` table has a uniqueness constraint on the `value` column, and a reference by id to each instance of that string is held in `t_stringinstance` along with the `file_id`, `address` in hex where the string is located in the binary and the `score`.
+The `t_strings` table has a uniqueness constraint on the `value` column, and a reference by id to each instance of that string is held in `t_stringinstance` along with the `file_id`, `address` in decimal where the string is located in the binary and the `score`.
 
 Unfortunately it is also the bane of the whole application due to the volume of data. The output of `strings` has to be filtered in some way as there is so much noise, and the table holding references `t_stringinstance` balloons to enormous sizes.
 
@@ -92,3 +92,5 @@ The latest attempt uses cosine from scipy on the text vectors to detect how simi
 
 I have seen that some interesting strings such as URLs and such score quite low, so ideally every string would be evaluated against a list of regexes before being dumped due to a low score. But runtime is already majorly impacted by current processing.
 
+## Note
+I am not a malware analyst. In a way, I made this tool to make it easier for me to learn malware analysis by finding samples which are interesting to me for some reason, usually based on finding a weird string via SQL. Python and SQL I am confident with, but I am a beginner when it comes to handling malware, and that side of things is an area where I would love feedback from people who know that they are talking about.

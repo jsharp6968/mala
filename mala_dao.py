@@ -160,7 +160,7 @@ class MalaDAO:
             return
         num_strings = len(strings)
         done_count = 0
-        step_size = 128
+        step_size = 256
         while not success:
             try:
                 self.cursor.callproc(
