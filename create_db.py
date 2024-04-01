@@ -78,7 +78,7 @@ def create_exiftool_table(conn):
         "id_file bigint", 
         "tag text", 
         "content text",
-        "FOREIGN KEY (id_file) REFERENCES t_file(id)",
+        #"FOREIGN KEY (id_file) REFERENCES t_file(id)",
         ]
     sql += ", ".join(columns)
     sql += ");"
@@ -138,8 +138,9 @@ def create_stringinstance_table(conn):
         "id_file bigint", 
         "id_string bigint", 
         "address integer",
-        "FOREIGN KEY (id_file) REFERENCES t_file(id)",
-        "FOREIGN KEY (id_string) REFERENCES t_strings(id)",]
+        #"FOREIGN KEY (id_file) REFERENCES t_file(id)",
+        #"FOREIGN KEY (id_string) REFERENCES t_strings(id)",
+        ]
     sql += ", ".join(columns)
     sql += ");"
     execute_sql(conn, sql)
@@ -150,7 +151,7 @@ def create_tlsh_table(conn):
     columns = [
         "id_file bigint", 
         "tlsh_hash varchar(72)",
-        "FOREIGN KEY (id_file) REFERENCES t_file(id)",
+        #"FOREIGN KEY (id_file) REFERENCES t_file(id)",
         ]
     sql += ", ".join(columns)
     sql += ");"
@@ -162,7 +163,7 @@ def create_ssdeep_table(conn):
     columns = [
         "id_file bigint", 
         "ssdeep_hash varchar(1480)", 
-        "FOREIGN KEY (id_file) REFERENCES t_file(id)",
+        #"FOREIGN KEY (id_file) REFERENCES t_file(id)",
         ]
     sql += ", ".join(columns)
     sql += ");"
@@ -178,7 +179,7 @@ def create_diec_table(conn):
         "string text",
         "type text",
         "version text",
-        "FOREIGN KEY (id_file) REFERENCES t_file(id)",
+        #"FOREIGN KEY (id_file) REFERENCES t_file(id)",
         ]
     sql += ", ".join(columns)
     sql += ");"
@@ -194,7 +195,7 @@ def create_diec_ent_table(conn):
         "s_offset bigint",
         "size bigint",
         "status text",
-        "FOREIGN KEY (id_file) REFERENCES t_file(id)",
+        #"FOREIGN KEY (id_file) REFERENCES t_file(id)",
         ]
     sql += ", ".join(columns)
     sql += ");"
@@ -207,7 +208,7 @@ def create_diec_meta_table(conn):
         "id_file bigint", 
         "entropy decimal(10, 8)",
         "status text",
-        "FOREIGN KEY (id_file) REFERENCES t_file(id)",
+        #"FOREIGN KEY (id_file) REFERENCES t_file(id)",
         ]
     sql += ", ".join(columns)
     sql += ");"
@@ -232,9 +233,10 @@ def create_string_instance_sp(conn):
 RETURNS VOID AS $$
 BEGIN
     INSERT INTO t_stringinstance (id_string, id_file, address)
-    SELECT t.id, file_id_val, unnest(arr_addresses)
-    FROM unnest(arr_strings) AS v(value)
-    JOIN t_strings t ON t.value = v.value;
+    SELECT t.id, file_id_val, a.address
+    FROM unnest(arr_strings) WITH ORDINALITY AS v(value, ord)
+    JOIN t_strings t ON t.value = v.value
+    JOIN unnest(arr_addresses) WITH ORDINALITY AS a(address, ord) ON v.ord = a.ord;
 END;
 $$ LANGUAGE plpgsql;
     """

@@ -54,6 +54,7 @@ When adding tools to the toolchain in mala, the workflow is:
 -   Add a dao insert function in `mala_dao.py:MalaDao()` to insert it into the DB
 - To verify it, add the table (or list of tables, see below) into `constants.py:TOOL_TABLES`
 
+Some generic functions exist in MalaDAO for generating tables.
 
 ### Default Tools
 By default, mala ships with some basic tools as follows:

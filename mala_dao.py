@@ -252,16 +252,9 @@ class MalaDAO:
                     "INSERT INTO t_diec (info, name, string, type, version, id_file) VALUES (%s, %s, %s, %s, %s, %s)"
                 )
                 for struct in results:
-                    entry = (
-                        struct['info'],
-                        struct['name'],
-                        struct['string'],
-                        struct['type'],
-                        struct['version'],
-                        file_id
-                        )
-                    values.append(entry)
-                self.cursor.executemany(sql_statement, values)
+                    struct['id_file'] = file_id
+                    sql = generate_insert_statement(struct, 't_diec')
+                    self.cursor.execute(sql)
             else:
                 sql_statement = (
                     f"INSERT INTO t_diec (info, name, string, type, version, id_file) VALUES ('broken', 'broken', '{results['string']}', 'broken', 'broken', {file_id})"

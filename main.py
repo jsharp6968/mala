@@ -24,9 +24,9 @@ if args.dir is not None and args.dir != "." and not args.extracted:
     args.extracted = True
     args.dir = args.dest_dir
 
-timestamp = str(int(time.time()))
+#timestamp = str(int(time.time()))
 #print(f"Tracking with memray output to: output_{timestamp}.bin")
-#   with Tracker(f"output_{timestamp}.bin"):
+#with Tracker(f"output_{timestamp}.bin"):
 target_files = run(args, mfh, target_files)
 runtime = time.time() - start_time
 samples_per_second = len(target_files) / runtime

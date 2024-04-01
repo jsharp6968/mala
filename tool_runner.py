@@ -5,8 +5,6 @@ import json
 import hashlib
 import constants
 import logging as log
-import uuid
-from memray import Tracker
 from constants import FILE_HASH_BUFFER_SIZE, SHR_CUTOFF, MAX_STRING_CHAR_LIMIT, EMERGENT
 from collections import Counter
 from scipy.spatial.distance import cosine
