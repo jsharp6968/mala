@@ -86,9 +86,9 @@ for char in text:
     # This is prone to score very highly for "eeeeeeeeeeeee" 
     score += len(EMERGENT) - EMERGENT.find(char)
 ```
-Where `EMERGENT` is a string composed of characters ranked descending in order of frequency. This is a good way to blindly find human readable text inside noise if your EMERGENT string is something like `"etaoinshrdlucmfgypwbvkxjqz"`, but as noted by the comment it scores repetitve strings too highly. 
+Where `EMERGENT` is a string composed of characters ranked descending in order of frequency. This is a good way to blindly find human readable text inside noise if your `EMERGENT` string is something like `"etaoinshrdlucmfgypwbvkxjqz"`, but as noted by the comment it scores repetitve strings too highly. 
 
-The latest attempt uses cosine from scipy on the text vectors to score higher if the string has a more diverse character set. I can't help but feel it's just as good as `len(set(text))/len(text) * score`.
+The latest attempt uses cosine from scipy on the text vectors to detect how similar the frequency of characters in the received string is to that of `EMERGENT`.
 
 I have seen that some interesting strings such as URLs and such score quite low, so ideally every string would be evaluated against a list of regexes before being dumped due to a low score. But runtime is already majorly impacted by current processing.
 
