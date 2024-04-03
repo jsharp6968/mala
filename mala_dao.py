@@ -1,5 +1,6 @@
 import time
 import random
+import json
 import psycopg2
 import logging as log
 from os.path import exists
@@ -144,6 +145,25 @@ class MalaDAO:
         return inserted_id
 
 
+    def insert_mala_strings(self, json_data, file_id):
+        """
+        Use a custom Rust binary to replicate using strings and filtering the outputs in python.
+        Significantly faster (44 samples/s -> 54)
+        """
+        if len(json_data) == 0:
+            return
+        json_data = json_data.split("\n")
+        strings = []
+        scores = []
+        addresses = []
+        for string_inst in json_data[:-1]:
+            string_instance = json.loads(string_inst)
+            strings.append(string_instance['string'])
+            scores.append(string_instance['score'])
+            addresses.append(string_instance['position'])
+        self.insert_string_instances(strings, scores, addresses, file_id)
+
+
     def insert_string_instances(self, strings, scores, addresses, file_id):
         """
         Databases do not like this function, but they deserve it. /s
@@ -202,6 +222,8 @@ class MalaDAO:
             values.append(entry)
 
         self.cursor.executemany(sql_statement, values)
+
+    
 
 
     def insert_tlsh_json(self, tlsh_data, file_id):

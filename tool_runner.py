@@ -222,6 +222,9 @@ class ToolRunner():
         Expects tool data to be a list of lines.
         """
         match tool_name:
+            case "mala_strings":
+                #json_tool_data = json.loads(tool_data)
+                self.dao.insert_mala_strings(tool_data, file_id)
             case "strings":
                 strings, scores, addresses = self.parse_strings_data(tool_data)
                 self.dao.insert_string_instances(strings, scores, addresses, file_id)
@@ -295,6 +298,7 @@ class ToolRunner():
             tool_config = self.tool_configs[key]
             if tool_config[0] == "strings":
                 # Strings needs to be handled in a bulk query
+                # Cannot currently be verified, this should be done manually in the DB
                 continue
             target_table = table_mapping[tool_config[0]]
             if isinstance(target_table, list):

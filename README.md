@@ -61,9 +61,11 @@ By default, mala ships with some basic tools as follows:
 
 `exiftool,-S,-j,-P` - Exiftool, very short fomat, json output format, preserve file modtime
 
-`strings,-t,d,-a,-n,6` - Strings, output with address in decimal format, all sections, 6 chars minimum
+~~`strings,-t,d,-a,-n,6` - Strings, output with address in decimal format, all sections, 6 chars minimum~~
 
-`strings,-t,d,-a,-n,6,-e,l` - Strings, output with address in decimal format, all sections, 6 chars minimum, 16-bit littleendian encoding
+~~`strings,-t,d,-a,-n,6,-e,l` - Strings, output with address in decimal format, all sections, 6 chars minimum, 16-bit littleendian encoding~~
+
+`mala_strings` - A Rust binary whose source is in `mala_strings.rs` and can be compiled and placed in `/usr/bin/` to be used systemwide. This replaced GNU strings above and is 20% faster.
 
 `diec,-je` - DetectItEasy compiled in C, output in json format, entropy scan
 
