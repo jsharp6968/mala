@@ -1,9 +1,9 @@
+use serde::Serialize;
+use std::collections::HashMap;
 use std::env;
-use std::fs::{File};
+use std::fs::File;
 use std::io::{self, BufReader, Read};
 use std::path::Path;
-use std::collections::{HashMap};
-use serde::Serialize;
 
 #[derive(Serialize)]
 struct ScoredString {
@@ -12,14 +12,14 @@ struct ScoredString {
     score: i32,
 }
 
-
 const MAX_STRING_CHAR_LIMIT: usize = 2600;
-static EMERGENT: &[char] = &['e', ' ', 't', '1', '|', 'o', 'a', 'r', 'i', 'n', 's', 'l', '2', '3', 
-'d', 'c', '8', '7', '0', '6', '4', 'm', '9', 'u', '5', 'p', 'E', 'S', 'A', 'C', 'g', 'f', 'T', 'h', 
-'b', 'y', '"', 'I', 'v', 'L', 'D', 'R', 'w', '-', '_', 'P', 'O', '.', 'N', 'F', 'x', '\\', 'M', 'W', 
-'%', 'V', 'U', 'k', 'G', 'H', 'B', ':', '@', ',', 'q', '?', '=', ']', ';', '[', '(', '<', 'Q', '\'', 
-'j', 'X', '>', ')', 'Y', 'K', 'z', '$', '/', 'Z', '*', 'J', '+', '`', '^', '!', '&', '#', '~', '}', 
-'{'];
+static EMERGENT: &[char] = &[
+    'e', ' ', 't', '1', '|', 'o', 'a', 'r', 'i', 'n', 's', 'l', '2', '3', 'd', 'c', '8', '7', '0',
+    '6', '4', 'm', '9', 'u', '5', 'p', 'E', 'S', 'A', 'C', 'g', 'f', 'T', 'h', 'b', 'y', '"', 'I',
+    'v', 'L', 'D', 'R', 'w', '-', '_', 'P', 'O', '.', 'N', 'F', 'x', '\\', 'M', 'W', '%', 'V', 'U',
+    'k', 'G', 'H', 'B', ':', '@', ',', 'q', '?', '=', ']', ';', '[', '(', '<', 'Q', '\'', 'j', 'X',
+    '>', ')', 'Y', 'K', 'z', '$', '/', 'Z', '*', 'J', '+', '`', '^', '!', '&', '#', '~', '}', '{',
+];
 
 fn enhanced_human_readable(text: &str) -> i32 {
     if text.len() > MAX_STRING_CHAR_LIMIT || text.is_empty() {
@@ -31,11 +31,15 @@ fn enhanced_human_readable(text: &str) -> i32 {
         *text_freq.entry(char).or_insert(0) += 1;
     }
 
-    let text_vector: Vec<i32> = EMERGENT.iter().map(|&c| *text_freq.get(&c).unwrap_or(&0) as i32).collect();
+    let text_vector: Vec<i32> = EMERGENT
+        .iter()
+        .map(|&c| *text_freq.get(&c).unwrap_or(&0) as i32)
+        .collect();
     let emergent_vector: Vec<i32> = (1..=EMERGENT.len() as i32).rev().collect();
 
     let similarity_score = 1.0 - cosine_similarity(&text_vector, &emergent_vector);
-    let diversity_score = text.chars().collect::<std::collections::HashSet<_>>().len() as f64 / text.len() as f64;
+    let diversity_score =
+        text.chars().collect::<std::collections::HashSet<_>>().len() as f64 / text.len() as f64;
 
     let combined_score = similarity_score * 100.0 + diversity_score * 50.0;
     combined_score as i32
@@ -74,7 +78,10 @@ fn extract_strings<P: AsRef<Path>>(path: P, min_length: usize) -> io::Result<Vec
                 temp_string.push(byte);
             } else {
                 if temp_string.len() >= min_length {
-                    strings_with_offsets.push((string_start_position, String::from_utf8_lossy(&temp_string).to_string()));
+                    strings_with_offsets.push((
+                        string_start_position,
+                        String::from_utf8_lossy(&temp_string).to_string(),
+                    ));
                 }
                 temp_string.clear();
             }
@@ -83,7 +90,10 @@ fn extract_strings<P: AsRef<Path>>(path: P, min_length: usize) -> io::Result<Vec
     }
 
     if temp_string.len() >= min_length {
-        strings_with_offsets.push((string_start_position, String::from_utf8_lossy(&temp_string).to_string()));
+        strings_with_offsets.push((
+            string_start_position,
+            String::from_utf8_lossy(&temp_string).to_string(),
+        ));
     }
 
     Ok(strings_with_offsets)
@@ -100,25 +110,29 @@ fn main() {
 
     match extract_strings(path, 6) {
         Ok(strings) => {
-            let scored_strings: Vec<(usize, String, i32)> = strings.into_iter()
+            let scored_strings: Vec<(usize, String, i32)> = strings
+                .into_iter()
                 .map(|(position, string)| {
                     let score = enhanced_human_readable(&string);
                     (position, string, score)
                 })
                 .filter(|&(_, _, score)| score >= 40)
                 .collect();
-            
+
             for (position, string, score) in scored_strings {
-                let scored_string = ScoredString { position, string, score };
+                let scored_string = ScoredString {
+                    position,
+                    string,
+                    score,
+                };
                 if let Ok(json_string) = serde_json::to_string(&scored_string) {
                     println!("{}", json_string);
                 }
             }
-        },
+        }
         Err(e) => {
             eprintln!("Error processing file: {}", e);
             std::process::exit(1);
         }
     }
-    
 }
