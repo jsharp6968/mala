@@ -1,5 +1,4 @@
 import psycopg2
-from psycopg2 import sql
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from constants import DB_NAME, DB_USER, DB_PASS, DB_HOST
 
@@ -65,31 +64,27 @@ def check_existing_file(sha256):
     print(row)
 
 
-def create_tool_table(conn, table_name, table_cols:list):
+def create_table(conn, table_name, table_cols:list):
     sql = f"CREATE TABLE IF NOT EXISTS {table_name} (id serial primary key, "
-    sql += ", ".join(columns)
+    sql += ", ".join(table_cols)
     sql += ");"
     execute_sql(conn, sql)
 
 
 def create_exiftool_table(conn):
-    sql = "CREATE TABLE IF NOT EXISTS t_exiftool (id serial primary key, "
     columns = [
         "id_file bigint", 
         "tag text", 
         "content text",
         #"FOREIGN KEY (id_file) REFERENCES t_file(id)",
         ]
-    sql += ", ".join(columns)
-    sql += ");"
-    execute_sql(conn, sql)
+    create_table(conn, 't_exiftool', columns)
 
 
 def create_file_table(conn):
     """
     Apparently, CHAR is more efficient than VARCHAR or text for fixed-length strings.
     """
-    sql = "CREATE TABLE IF NOT EXISTS t_file (id serial primary key, "
     columns = [
         "md5 CHAR(32)",
         "sha256 CHAR(64) UNIQUE",
@@ -98,16 +93,13 @@ def create_file_table(conn):
         "path text",
         "fsize integer",
     ]
-    sql += ", ".join(columns)
-    sql += ");"
-    execute_sql(conn, sql)
+    create_table(conn, 't_file', columns)
 
 
 def create_packages_table(conn):
     """
     A table for ingested archives from sources like VXUG and Virusshare etc.
     """
-    sql = "CREATE TABLE IF NOT EXISTS t_package (id serial primary key, "
     columns = [
         "md5 CHAR(32) unique",
         "basename text",
@@ -116,24 +108,18 @@ def create_packages_table(conn):
         "date_ingested timestamp without time zone",
         "fcount integer",
     ]
-    sql += ", ".join(columns)
-    sql += ");"
-    execute_sql(conn, sql)
+    create_table(conn, 't_package', columns)
 
 
 def create_strings_table(conn):
-    sql = "CREATE TABLE IF NOT EXISTS t_strings (id serial primary key, "
     columns = [
         "value text unique",
         "score integer"
     ]
-    sql += ", ".join(columns)
-    sql += ");"
-    execute_sql(conn, sql)
+    create_table(conn, 't_strings', columns)
 
 
 def create_stringinstance_table(conn):
-    sql = "CREATE TABLE IF NOT EXISTS t_stringinstance (id serial primary key, "
     columns = [
         "id_file bigint", 
         "id_string bigint", 
@@ -141,37 +127,28 @@ def create_stringinstance_table(conn):
         #"FOREIGN KEY (id_file) REFERENCES t_file(id)",
         #"FOREIGN KEY (id_string) REFERENCES t_strings(id)",
         ]
-    sql += ", ".join(columns)
-    sql += ");"
-    execute_sql(conn, sql)
+    create_table(conn, 't_stringinstance', columns)
 
 
 def create_tlsh_table(conn):
-    sql = "CREATE TABLE IF NOT EXISTS t_tlsh (id serial primary key, "
     columns = [
         "id_file bigint", 
         "tlsh_hash varchar(72)",
         #"FOREIGN KEY (id_file) REFERENCES t_file(id)",
         ]
-    sql += ", ".join(columns)
-    sql += ");"
-    execute_sql(conn, sql)
+    create_table(conn, 't_stringinstance', columns)
 
 
 def create_ssdeep_table(conn):
-    sql = "CREATE TABLE IF NOT EXISTS t_ssdeep (id serial primary key, "
     columns = [
         "id_file bigint", 
         "ssdeep_hash varchar(1480)", 
         #"FOREIGN KEY (id_file) REFERENCES t_file(id)",
         ]
-    sql += ", ".join(columns)
-    sql += ");"
-    execute_sql(conn, sql)
+    create_table(conn, 't_stringinstance', columns)
 
 
 def create_diec_table(conn):
-    sql = "CREATE TABLE IF NOT EXISTS t_diec (id serial primary key, "
     columns = [
         "id_file bigint", 
         "info text",
@@ -181,13 +158,10 @@ def create_diec_table(conn):
         "version text",
         #"FOREIGN KEY (id_file) REFERENCES t_file(id)",
         ]
-    sql += ", ".join(columns)
-    sql += ");"
-    execute_sql(conn, sql)
+    create_table(conn, 't_diec', columns)
 
 
 def create_diec_ent_table(conn):
-    sql = "CREATE TABLE IF NOT EXISTS t_diec_ent (id serial primary key, "
     columns = [
         "id_file bigint", 
         "entropy decimal(10, 8)",
@@ -197,22 +171,17 @@ def create_diec_ent_table(conn):
         "status text",
         #"FOREIGN KEY (id_file) REFERENCES t_file(id)",
         ]
-    sql += ", ".join(columns)
-    sql += ");"
-    execute_sql(conn, sql)
+    create_table(conn, 't_diec_ent', columns)
 
 
 def create_diec_meta_table(conn):
-    sql = "CREATE TABLE IF NOT EXISTS t_diec_meta (id serial primary key, "
     columns = [
         "id_file bigint", 
         "entropy decimal(10, 8)",
         "status text",
         #"FOREIGN KEY (id_file) REFERENCES t_file(id)",
         ]
-    sql += ", ".join(columns)
-    sql += ");"
-    execute_sql(conn, sql)
+    create_table(conn, 't_diec_ent', columns)
 
 
 def create_string_insert_sp(conn):
@@ -229,7 +198,8 @@ $$ LANGUAGE plpgsql;
 
 
 def create_string_instance_sp(conn):
-    sql = """CREATE OR REPLACE FUNCTION insert_string_instances(arr_strings TEXT[], file_id_val INTEGER, arr_addresses INTEGER[])
+    sql = """CREATE OR REPLACE FUNCTION insert_string_instances(arr_strings TEXT[], \
+        file_id_val INTEGER, arr_addresses INTEGER[])
 RETURNS VOID AS $$
 BEGIN
     INSERT INTO t_stringinstance (id_string, id_file, address)

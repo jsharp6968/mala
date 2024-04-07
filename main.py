@@ -1,20 +1,20 @@
 import sys
 import time
-#import memray 
+#import memray
 import logging as log
 from file_handler import MalaFileHandler
 from create_db import setup
-from core import *
+from core import run, unzip_files
 from argparser import MalaArgParser
 
 
 setup()
-cmdline = " ".join(sys.argv[1:])
+CMDLINE = " ".join(sys.argv[1:])
 log.basicConfig(filename='mala.log', level=log.DEBUG,
                 format='%(asctime)s - %(levelname)s - %(message)s')
 parser = MalaArgParser()
 args = parser.args
-log.debug(f'Starting mala with command "{cmdline}"')
+log.debug(f'Starting mala with command "{CMDLINE}"')
 start_time = time.time()
 
 mfh = MalaFileHandler(args)

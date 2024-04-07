@@ -1,12 +1,8 @@
 import py7zr
-import argparse
 import os
 import sys
-import time
 import logging as log
 import concurrent.futures as c_futures
-from file_handler import MalaFileHandler
-from create_db import setup
 from mala_dao import MalaDAO
 from tool_runner import ToolRunner
 import constants
@@ -17,8 +13,8 @@ def extract_sample(path, dest):
     Py7zr extraction and chmod to prevent detonation.
     Assumes the password is 'infected'.
     """
-    with py7zr.SevenZipFile(path, mode="r", password="infected") as z:
-        z.extractall(path=dest)
+    with py7zr.SevenZipFile(path, mode="r", password="infected") as zip_file:
+        zip_file.extractall(path=dest)
         os.chmod(dest, 0o644)
 
 
@@ -27,8 +23,8 @@ def extract_package(path, dest):
     Py7zr extraction of an archive.
     Assumes the password is 'infected'.
     """
-    with py7zr.SevenZipFile(path, mode="r", password="infected") as z:
-        z.extractall(path=dest)
+    with py7zr.SevenZipFile(path, mode="r", password="infected") as zip_file:
+        zip_file.extractall(path=dest)
 
 
 def handle_extraction(file, dest_dir, package=False):
@@ -44,8 +40,9 @@ def handle_extraction(file, dest_dir, package=False):
                 extract_package(file, dest_dir)
             else:
                 extract_sample(file, dest_dir)
-    except:
-        log.debug("Failed to extract ", file, target_path)
+    except Exception as error:
+        log.error(f"Failed to extract {file} {target_path}")
+        log.error(error)
 
 
 def write_output(target_path, tool_output):
@@ -53,9 +50,9 @@ def write_output(target_path, tool_output):
     Write all tool outputs for a sample to a textfile.
     """
     basename = os.path.basename(target_path)
-    output_filename = MALA_OUTPUT_DIR + basename + ".mala"
+    output_filename = constants.MALA_OUTPUT_DIR + basename + ".mala"
     if not os.path.exists(output_filename):
-        with open(output_filename, "w") as outfile:
+        with open(output_filename, "w", encoding="utf-8") as outfile:
             outfile.write("\n".join(tool_output))
 
 
@@ -80,11 +77,10 @@ def worker_function(file_chunk, toolchain, verify=None):
                     log.debug(f"Verified file {file_id}")
                     verified += 1
                 continue
-                
             tool_runner.execute_all_tools(file_id, file)
             handled += 1
     except Exception as e:
-        log.debug(f"{e}\nAn error occurred running a worker. Destroying worker now.")
+        log.error(f"{e}\nAn error occurred running a worker. Destroying worker now.")
     finally:
         dao.destroy()
         log.debug(f"Thread finished. Processed: {count} Verified: {verified} NEW:{handled} ")
@@ -95,11 +91,7 @@ def singleshot(filename, toolchain):
     Run all tools on just one sample.
     """
     worker_function(filename, toolchain)
-    runtime = time.time() - start_time
-    samples_per_second = 1 / runtime
-    print(f"Time:{runtime:.6f} seconds.")
-    log.debug(f"Handled this malware sample in {runtime:.6f} seconds.")
-    exit()
+    sys.exit()
 
 
 def run(args, mfh, target_files):
@@ -112,12 +104,7 @@ def run(args, mfh, target_files):
         constants.TOOLCHAIN = [args.single_tool,]
     if args.singleshot:
         log.debug(f'Running mala on a single file: "{args.filename}"')
-        singleshot([args.filename,], constants.TOOLCHAIN) 
-        runtime = time.time() - start_time
-        samples_per_second = 1 / runtime
-        print(f"Time:{runtime:.6f} seconds.")
-        log.debug(f"Handled this malware sample in {runtime:.6f} seconds.")
-        exit()
+        singleshot([args.filename,], constants.TOOLCHAIN)
     if args.extracted and not target_files:
         log.debug(f"Checking target path {args.dir}")
         target_files = mfh.get_all_file_paths()
@@ -157,7 +144,8 @@ def unzip_files(mfh, args):
     if args.package:
         new_target_files = []
         for target_file in target_files:
-            # In the dest dir, find the filename without .7z extension, walk its contents and return into target_files
+            # In the dest dir, find the filename without .7z extension,
+            # walk its contents and return into target_files
             extracted_dir = os.path.basename(target_file.replace('.7z', ''))
             abs_dirpath = os.path.join(args.dest_dir, extracted_dir)
             if os.path.exists(abs_dirpath) and os.path.isdir(abs_dirpath):
