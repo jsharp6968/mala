@@ -78,7 +78,7 @@ class MalaFileHandler():
         if not path:
             path = self.root_dir
         seven_z_files = []
-        for dirpath, dirnames, filenames in os.walk(self.root_dir):
+        for dirpath, _, filenames in os.walk(self.root_dir):
             for file in filenames:
                 if file.endswith(".7z"):
                     full_path = os.path.join(dirpath, file)
