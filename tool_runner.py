@@ -258,7 +258,7 @@ class ToolRunner():
             )
         except Exception as e:
             print(repr(e))
-            print(file_id,malware_path,tool_config,argstring)
+            print(file_id,malware_path,tool_config)
             print(f"Skipping tool {tool_config} on sample {file_id}")
          
 
@@ -282,7 +282,7 @@ class ToolRunner():
                 )
             except Exception as e:
                 print(repr(e))
-                print(file_id,malware_path,tool_config,argstring)
+                print(file_id,malware_path,tool_config)
                 print(f"Skipping tool {key} on sample {file_id}")
 
     
