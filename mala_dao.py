@@ -1,18 +1,20 @@
 import time
 import random
-import psycopg2
+import json
 import logging as log
-from os.path import exists
+import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from constants import DB_NAME, DB_HOST, DB_PORT, DB_USER, DB_PASS
 
 
 def generate_insert_statement(data, table_name):
-    # All dictionary keys must match column names in every case
+    """
+    All dictionary keys must match column names in every case.
+    """
     statement = f"INSERT INTO {table_name}("
     column_names = data.keys()
     values = data.values()
-    statement += ",".join([col for col in column_names]) + ") VALUES("
+    statement += ",".join(list(column_names)) + ") VALUES("
     for value in values:
         if isinstance(value, str):
             value = value.replace("'", "''")
@@ -25,6 +27,9 @@ def generate_insert_statement(data, table_name):
 
 
 class MalaDAO:
+    """
+    A class for handling all DB transactions.
+    """
     def __init__(self):
         if DB_HOST == '/var/run/postgresql':
             self.conn = psycopg2.connect(
@@ -102,21 +107,20 @@ class MalaDAO:
             if not result:
                 log.debug(f"Result was none for insert statement: {insert_statement}")
                 return -1
-            else:
-                inserted_id = result[0]
+            inserted_id = result[0]
         except Exception as e:
             log.debug(repr(e))
             log.debug("Error inserting data in MalaDao.")
             log.debug(insert_statement)
         return inserted_id
-    
+
 
     def insert_data_returning_id(self, data:dict, table_name):
         insert_statement = generate_insert_statement(data, table_name) + "returning id;"
         this_id = self.insert_statement_returning_id(insert_statement)
         return this_id
 
-    
+
     def get_package_file_rowcount(self,  package_name):
         sql = f"select count(distinct tf.id) from t_file tf where path like '%/{package_name}/%'"
         self.cursor.execute(sql)
@@ -144,6 +148,25 @@ class MalaDAO:
         return inserted_id
 
 
+    def insert_mala_strings(self, json_data, file_id):
+        """
+        Use a custom Rust binary to replicate using strings and filtering the outputs in python.
+        Significantly faster (44 samples/s -> 54)
+        """
+        if len(json_data) == 0:
+            return
+        json_data = json_data.split("\n")
+        strings = []
+        scores = []
+        addresses = []
+        for string_inst in json_data[:-1]:
+            string_instance = json.loads(string_inst)
+            strings.append(string_instance['string'])
+            scores.append(string_instance['score'])
+            addresses.append(string_instance['position'])
+        self.insert_string_instances(strings, scores, addresses, file_id)
+
+
     def insert_string_instances(self, strings, scores, addresses, file_id):
         """
         Databases do not like this function, but they deserve it. /s
@@ -154,7 +177,7 @@ class MalaDAO:
         arrays are being inserted, there is a conflict between the two transactions.
         """
         success = False
-        
+
         if len(strings) == 0:
             print(f"No strings to process for file {file_id}")
             return
@@ -167,10 +190,9 @@ class MalaDAO:
                     # The insert_strings procedure is idempotent
                     "insert_strings", 
                     (
-                        strings[done_count:done_count+step_size], 
+                        strings[done_count:done_count+step_size],
                         scores[done_count:done_count+step_size])
                 )
-                
                 done_count += step_size
                 if done_count >= num_strings:
                     success = True
@@ -182,7 +204,7 @@ class MalaDAO:
             self.cursor.callproc(
                     "insert_string_instances", 
                     (
-                        strings, 
+                        strings,
                         int(file_id),
                         addresses)
                 )
@@ -221,35 +243,36 @@ class MalaDAO:
         )
         self.cursor.execute(sql_statement, values)
 
-    
+
     def get_fpath_from_id(self, file_id):
         sql = f"select path from t_file where id = {file_id}"
         self.cursor.execute(sql)
         result = self.cursor.fetchone()
         return result[0]
 
-    
+
     def get_no_strings_files(self):
         """
         Get all file IDs which don't have any strings info.
         As getting distinct file ids requires a sequential scan,
         it's efficient to just keep the smaller list of files in memory once.
         """
-        sql = "select distinct id from t_file where id not in (select distinct id_file from t_stringinstance);"
+        sql = "select distinct id from t_file where id not in (select distinct \
+            id_file from t_stringinstance);"
         self.cursor.execute(sql)
         return self.cursor.fetchall()
-        
+
 
     def insert_diec_json(self, diec_data, file_id):
         values = []
-        
         if 'detects' in diec_data.keys():
             # Deep scan
             results = diec_data['detects'][0]
             if 'values' in results.keys():
                 results = results['values']
                 sql_statement = (
-                    "INSERT INTO t_diec (info, name, string, type, version, id_file) VALUES (%s, %s, %s, %s, %s, %s)"
+                    "INSERT INTO t_diec (info, name, string, type, version, \
+                        id_file) VALUES (%s, %s, %s, %s, %s, %s)"
                 )
                 for struct in results:
                     struct['id_file'] = file_id
@@ -257,14 +280,16 @@ class MalaDAO:
                     self.cursor.execute(sql)
             else:
                 sql_statement = (
-                    f"INSERT INTO t_diec (info, name, string, type, version, id_file) VALUES ('broken', 'broken', '{results['string']}', 'broken', 'broken', {file_id})"
+                    f"INSERT INTO t_diec (info, name, string, type, version, id_file) VALUES \
+                        ('broken', 'broken', '{results['string']}', 'broken', 'broken', {file_id})"
                 )
                 self.cursor.execute(sql_statement)
         elif 'records' in diec_data.keys():
             # Entropy scan
             results = diec_data['records']
             sql_statement = (
-                "INSERT INTO t_diec_ent (entropy, name, s_offset, size, status, id_file) VALUES (%s, %s, %s, %s, %s, %s)"
+                "INSERT INTO t_diec_ent (entropy, name, s_offset, size, status, id_file)\
+                     VALUES (%s, %s, %s, %s, %s, %s)"
             )
             for struct in results:
                 entry = (
@@ -276,7 +301,7 @@ class MalaDAO:
                     file_id
                     )
                 values.append(entry)
-            
-            meta_statement = f"INSERT INTO t_diec_meta (entropy, status, id_file) VALUES ({diec_data['total']}, '{diec_data['status']}', {file_id})"
+            meta_statement = f"INSERT INTO t_diec_meta (entropy, status, id_file)\
+                 VALUES ({diec_data['total']}, '{diec_data['status']}', {file_id})"
             self.cursor.executemany(sql_statement, values)
-            self.cursor.execute(meta_statement) 
+            self.cursor.execute(meta_statement)

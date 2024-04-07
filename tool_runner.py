@@ -1,13 +1,12 @@
 import subprocess
 import os
-import time
 import json
 import hashlib
-import constants
 import logging as log
-from constants import FILE_HASH_BUFFER_SIZE, SHR_CUTOFF, MAX_STRING_CHAR_LIMIT, EMERGENT
 from collections import Counter
 from scipy.spatial.distance import cosine
+from constants import FILE_HASH_BUFFER_SIZE, SHR_CUTOFF, \
+    MAX_STRING_CHAR_LIMIT, EMERGENT, TOOL_TABLES, TOOLCHAIN
 
 
 
@@ -17,7 +16,7 @@ def enhanced_human_readable(text):
     which must exceed SHR_CUTOFF in order to return True.
     This version is a bit more complex to prevent strings like 'eee' scoring
     as the highest in the DB."""
-    if len(text) > constants.MAX_STRING_CHAR_LIMIT or len(text) == 0:
+    if len(text) > MAX_STRING_CHAR_LIMIT or len(text) == 0:
         return 0
 
     text_freq = Counter(text)
@@ -25,9 +24,8 @@ def enhanced_human_readable(text):
     emergent_vector = list(range(len(EMERGENT), 0, -1))
 
     similarity_score = 1 - cosine(text_vector, emergent_vector)
-    diversity_score = len(set(text)) / len(text)    # length independent
-    #entropy_score = calculate_entropy(text)         # length independent
-    combined_score = similarity_score * 100 + diversity_score * 50 #+ entropy_score * 10
+    diversity_score = len(set(text)) / len(text)
+    combined_score = similarity_score * 100 + diversity_score * 50
 
     return int(combined_score)
 
@@ -41,13 +39,13 @@ def simple_human_readable(text):
     when you order characters by frequency descending in human written text.
     Would be interesting to train this on whatever language/dataset you want to
     score highly/search for."""
-    if len(text) > constants.MAX_STRING_CHAR_LIMIT:
+    if len(text) > MAX_STRING_CHAR_LIMIT:
         return 0
 
     # Used to be "etaoinshrdlucmfgypwbvkxjqz" - the above is calculated from top 10k common strings
     score = 0
     for char in text:
-        # This is prone to score very highly for "eeeeeeeeeeeee" 
+        # This is prone to score very highly for "eeeeeeeeeeeee"
         score += len(EMERGENT) - EMERGENT.find(char)
     if score == 0:
         return 0
@@ -64,14 +62,17 @@ def get_emergent(text):
             chars[char] += 1
         else:
             chars[char] = 1
-            chars.add(char)
-    sorted_chars = dict(sorted(chars.items(), 
-                    key=lambda item: item[1], 
+    sorted_chars = dict(sorted(chars.items(),
+                    key=lambda item: item[1],
                     reverse=True))
     return sorted_chars
 
 
 class ToolRunner():
+    """
+    A class that executes tools which are installed on the host OS via
+    subprocess.
+    """
     def __init__(self, dao, toolchain, single_tool=None):
         self.dao = dao
         self.tool_configs = {}
@@ -79,7 +80,7 @@ class ToolRunner():
         if single_tool:
             self.toolchain = [single_tool,]
         self.parse_all_tool_cmdlines()
-        
+
 
     def get_file_data(self, file):
         """
@@ -122,7 +123,7 @@ class ToolRunner():
         fsize = 0
 
         with open(file_path, "rb") as file:
-            for chunk in iter(lambda: file.read(constants.FILE_HASH_BUFFER_SIZE), b""):
+            for chunk in iter(lambda: file.read(FILE_HASH_BUFFER_SIZE), b""):
                 hash_md5.update(chunk)
                 hash_sha256.update(chunk)
                 hash_sha1.update(chunk)
@@ -145,13 +146,15 @@ class ToolRunner():
         Execute a tool with nullable args on an absolute path.
         Returns a string.
         """
-        process = subprocess.Popen(
+        with subprocess.Popen(
             [tool] + args + [malware_path],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
-        )
-        stdout, stderr = process.communicate()
-        return stdout.decode("utf-8")
+        ) as process:
+            stdout, stderr = process.communicate()
+            if process.returncode != 0:
+                log.debug(stderr.decode("utf-8"))
+            return stdout.decode("utf-8")
 
 
     def parse_tool_cmdline(self, tool_cmdline):
@@ -169,14 +172,14 @@ class ToolRunner():
             self.tool_configs[tool_cmdline] = (tool, tool_args)
         return tool, tool_args
 
-    
+
     def parse_strings_data(self, tool_data_string):
         """
         Take the output of the strings linux binary and submit unique values to a
         heuristic function to evaluate the human readability of each line,
         which must exceed SHR_SCORE in order to return True.
 
-        - This assumes you are calling:  strings -t x __other_args__
+        - This assumes you are calling:  strings -t d __other_args__
         """
         if len(tool_data_string) < 9:
             return [], [], []
@@ -189,25 +192,26 @@ class ToolRunner():
                 line = line.lstrip()
                 if not " " in line or len(line) < 9:
                     continue
-                
                 line_items = line.split(" ", 1)
                 string = line_items[1].lstrip()
                 #result_tuple = simple_human_readable(string)
                 score = enhanced_human_readable(string)
-                if score > constants.SHR_CUTOFF:
+                if score > SHR_CUTOFF:
                     strings.append(string)
-                    #addresses.append(line_items[0] if len(line_items[0]) % 2 == 0 else '0' + line_items[0])
+                    #addresses.append(
+                    # line_items[0] if len(line_items[0]) % 2 == 0
+                    # else '0' + line_items[0])
                     addresses.append(int(line_items[0]))
                     scores.append(score)
             except Exception as e:
                 print("CRASHED IN PSD")
-                print(e)  
+                print(e)
         return strings, scores, addresses
 
 
     def parse_exiftool_data_json(self, tool_data):
         """Turn a list of single k:v dicts into one dict."""
-        concatenated_output = "".join([line for line in tool_data])
+        concatenated_output = "".join(tool_data)
         json_tool_output = json.loads(concatenated_output)
 
         exif_table = {}
@@ -222,6 +226,9 @@ class ToolRunner():
         Expects tool data to be a list of lines.
         """
         match tool_name:
+            case "mala_strings":
+                #json_tool_data = json.loads(tool_data)
+                self.dao.insert_mala_strings(tool_data, file_id)
             case "strings":
                 strings, scores, addresses = self.parse_strings_data(tool_data)
                 self.dao.insert_string_instances(strings, scores, addresses, file_id)
@@ -244,8 +251,8 @@ class ToolRunner():
         """
         try:
             tool_data = self.execute_tool(
-                malware_path=malware_path, 
-                tool=tool_config[0], 
+                malware_path=malware_path,
+                tool=tool_config[0],
                 args=tool_config[1]
                 )
             self.insert_tool_data(
@@ -255,9 +262,9 @@ class ToolRunner():
             )
         except Exception as e:
             print(repr(e))
-            print(file_id,malware_path,tool_config,argstring)
+            print(file_id,malware_path,tool_config)
             print(f"Skipping tool {tool_config} on sample {file_id}")
-         
+
 
     def execute_all_tools(self, file_id, malware_path):
         """
@@ -268,8 +275,8 @@ class ToolRunner():
             try:
                 tool_config = self.tool_configs[key]
                 tool_data = self.execute_tool(
-                    malware_path=malware_path, 
-                    tool=tool_config[0], 
+                    malware_path=malware_path,
+                    tool=tool_config[0],
                     args=tool_config[1]
                     )
                 self.insert_tool_data(
@@ -279,10 +286,10 @@ class ToolRunner():
                 )
             except Exception as e:
                 print(repr(e))
-                print(file_id,malware_path,tool_config,argstring)
+                print(file_id,malware_path,tool_config)
                 print(f"Skipping tool {key} on sample {file_id}")
 
-    
+
     def verify_all_tools(self, file_id):
         """
         Check each table associated to each tool for the file_id,
@@ -290,11 +297,12 @@ class ToolRunner():
         Strings requires accessing the biggest table in the DB so
         we do that once and store it in self for efficiency (TODO)
         """
-        table_mapping = constants.TOOL_TABLES
+        table_mapping = TOOL_TABLES
         for key in self.tool_configs.keys():
             tool_config = self.tool_configs[key]
             if tool_config[0] == "strings":
                 # Strings needs to be handled in a bulk query
+                # Cannot currently be verified, this should be done manually in the DB
                 continue
             target_table = table_mapping[tool_config[0]]
             if isinstance(target_table, list):
@@ -307,7 +315,7 @@ class ToolRunner():
                                 file_id=file_id,
                                 malware_path=self.dao.get_fpath_from_id(file_id),
                                 tool_config=self.parse_tool_cmdline(
-                                [c for c in constants.TOOLCHAIN if c.startswith(key)][0],
+                                [c for c in TOOLCHAIN if c.startswith(key)][0],
                                 )
                             )
                         except Exception as e:
@@ -321,7 +329,7 @@ class ToolRunner():
                             file_id=file_id,
                             malware_path=self.dao.get_fpath_from_id(file_id),
                             tool_config=self.parse_tool_cmdline(
-                                [c for c in constants.TOOLCHAIN if c.startswith(key)][0],
+                                [c for c in TOOLCHAIN if c.startswith(key)][0],
                                 )
                         )
                     except Exception as e:

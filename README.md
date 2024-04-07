@@ -12,6 +12,7 @@ Mala uses subprocess - anything you can run, it can run. Just add your tools to 
 `"exiftool,-S,-j,-P"`
 
 ## Run
+As mala uses a `match: case` statement in `tool_runner.py` in `ToolRunner:insert_tool_data()`, you must have Python 3.11 installed.
 Mala defaults to using a Unix socket, which Postgres does not make available unless the relevant line of the `postgresql.conf` is uncommented. If you want to use the network stack over localhost (or a remote/LAN DB) then change the DB_HOST value in `constants.py`.
 
 If you want to extract archives and then process the contents, specify both the `-d` arg for where the .7z files are, and the `-dd` arg for where those archives should all be extracted to like so:
@@ -61,9 +62,11 @@ By default, mala ships with some basic tools as follows:
 
 `exiftool,-S,-j,-P` - Exiftool, very short fomat, json output format, preserve file modtime
 
-`strings,-t,d,-a,-n,6` - Strings, output with address in decimal format, all sections, 6 chars minimum
+~~`strings,-t,d,-a,-n,6` - Strings, output with address in decimal format, all sections, 6 chars minimum~~
 
-`strings,-t,d,-a,-n,6,-e,l` - Strings, output with address in decimal format, all sections, 6 chars minimum, 16-bit littleendian encoding
+~~`strings,-t,d,-a,-n,6,-e,l` - Strings, output with address in decimal format, all sections, 6 chars minimum, 16-bit littleendian encoding~~
+
+`mala_strings` - A Rust binary whose source is in `mala_strings.rs` and can be compiled and placed in `/usr/bin/` to be used systemwide. This replaced GNU strings above and is 20% faster.
 
 `diec,-je` - DetectItEasy compiled in C, output in json format, entropy scan
 
