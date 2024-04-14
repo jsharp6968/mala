@@ -86,6 +86,7 @@ Unfortunately it is also the bane of the whole application due to the volume of 
 The score comes from a heuristic function to analyse character frequency, using a minimum threshold for keeping the string:
 
 ```
+EMERGENT = "etaoinshrdlucmfgypwbvkxjqz"
 for char in text:
     # This is prone to score very highly for "eeeeeeeeeeeee" 
     score += len(EMERGENT) - EMERGENT.find(char)
@@ -94,7 +95,7 @@ Where `EMERGENT` is a string composed of characters ranked descending in order o
 
 The latest attempt uses cosine from scipy on the text vectors to detect how similar the frequency of characters in the received string is to that of `EMERGENT`.
 
-I have seen that some interesting strings such as URLs and such score quite low, so ideally every string would be evaluated against a list of regexes before being dumped due to a low score. But runtime is already majorly impacted by current processing.
+I have seen that some interesting strings such as URLs and such score quite low, so ideally every string would be evaluated against a list of regexes before being dumped due to a low score.
 
 ## Note
 I am not a malware analyst. In a way, I made this tool to make it easier for me to learn malware analysis by finding samples which are interesting to me for some reason, usually based on finding a weird string via SQL. Python and SQL I am confident with, but I am a beginner when it comes to handling malware, and that side of things is an area where I would love feedback from people who know that they are talking about.
