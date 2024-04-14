@@ -65,7 +65,11 @@ def check_existing_file(sha256):
 
 
 def create_table(conn, table_name, table_cols:list):
-    sql = f"CREATE TABLE IF NOT EXISTS {table_name} (id serial primary key, "
+    """
+    Strings needs a Bigserial. I hit 2.147 Bn strings at ~950k samples.
+    Bigserial goes to the moon.
+    """
+    sql = f"CREATE TABLE IF NOT EXISTS {table_name} (id bigserial primary key, "
     sql += ", ".join(table_cols)
     sql += ");"
     execute_sql(conn, sql)

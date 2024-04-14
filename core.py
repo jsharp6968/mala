@@ -114,12 +114,9 @@ def run(args, mfh, target_files):
 
     if len(target_files) == 0:
         print("No files to process, exiting.")
-        return target_files
+        return [1]
     log.debug(f"Handling {len(target_files)} malware samples.")
-    chunk_size = len(target_files) // constants.THREAD_LIMIT
-    file_chunks = [
-        target_files[i : i + chunk_size] for i in range(0, len(target_files), chunk_size)
-    ]
+    file_chunks = balance_target_file_chunks(target_files)
     log.debug(f"Running with {constants.THREAD_LIMIT} threads and {len(file_chunks)} chunks")
     with c_futures.ProcessPoolExecutor(max_workers=constants.THREAD_LIMIT) as executor:
         futures = [
@@ -130,10 +127,35 @@ def run(args, mfh, target_files):
     return target_files
 
 
+def balance_target_file_chunks(target_files):
+    """
+    Equalize the total raw data size in each chunk to try and ensure consistent thread finishing times.
+    First get all sizes and sort the dictionary, then iterate descending by size and give the smallest
+    chunk the next file. The more extracted samples the more even it gets, and it's quite effective.
+    """
+    total_volume = 0
+    file_sizes = {}
+    for file in target_files:
+        fsize = os.path.getsize(file)
+        total_volume += fsize
+        file_sizes[file] = fsize
+    sorted_files = sorted(file_sizes.items(), key=lambda item: item[1], reverse=True)
+    num_bins = constants.THREAD_LIMIT
+    bins = [[] for _ in range(num_bins)]
+    bin_sizes = [0] * num_bins
+    
+    # Greedy allocation of largest file to bin of minimum size
+    for file, size in sorted_files:
+        min_bin_index = bin_sizes.index(min(bin_sizes))
+        bins[min_bin_index].append(file)
+        bin_sizes[min_bin_index] += size
+    return bins
+
+
 def unzip_files(mfh, args):
     target_files = mfh.find_7z_files()
     if target_files:
-        with c_futures.ProcessPoolExecutor(max_workers=constants.THREAD_LIMIT) as executor:
+        with c_futures.ProcessPoolExecutor(max_workers=2) as executor:
             futures = [
                 executor.submit(handle_extraction, file, args.dest_dir, args.package)
                 for file in target_files
