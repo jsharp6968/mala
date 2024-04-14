@@ -44,6 +44,8 @@ def setup():
     create_string_instance_sp(setup_conn)
     create_ssdeep_table(setup_conn)
     create_packages_table(setup_conn)
+    create_file_ingest_table(setup_conn)
+    create_executions_table(setup_conn)
     print("Completed setup!")
 
 
@@ -115,6 +117,40 @@ def create_packages_table(conn):
     create_table(conn, 't_package', columns)
 
 
+def create_file_ingest_table(conn):
+    """
+    A table for holding relations between individual samples and mala executions.
+    """
+    columns = [
+        "id_file bigint",
+        "id_execution bigint",
+    ]
+    create_table(conn, 't_file_ingest', columns)
+
+
+def create_executions_table(conn):
+    """
+    A table for recording each execution of mala.
+    Also provides the basis for linking files to executions.
+    Useful for tracking performance over time.
+    """
+    columns = [
+        "exec_uuid CHAR(36) unique",
+        "cmdline text",
+        "fcount integer",
+        "fsize bigint",
+        "start_time timestamp without time zone",
+        "finish_time timestamp without time zone",
+        "toolchain text",
+        "thread_limit integer",
+        "shr_cutoff integer",
+        "fcount_sanity integer",
+        "handled_count integer",
+        "verified_count integer"
+    ]
+    create_table(conn, 't_executions', columns)
+
+
 def create_strings_table(conn):
     columns = [
         "value text unique",
@@ -140,7 +176,7 @@ def create_tlsh_table(conn):
         "tlsh_hash varchar(72)",
         #"FOREIGN KEY (id_file) REFERENCES t_file(id)",
         ]
-    create_table(conn, 't_stringinstance', columns)
+    create_table(conn, 't_tlsh', columns)
 
 
 def create_ssdeep_table(conn):
@@ -149,7 +185,7 @@ def create_ssdeep_table(conn):
         "ssdeep_hash varchar(1480)", 
         #"FOREIGN KEY (id_file) REFERENCES t_file(id)",
         ]
-    create_table(conn, 't_stringinstance', columns)
+    create_table(conn, 't_ssdeep', columns)
 
 
 def create_diec_table(conn):
@@ -185,7 +221,7 @@ def create_diec_meta_table(conn):
         "status text",
         #"FOREIGN KEY (id_file) REFERENCES t_file(id)",
         ]
-    create_table(conn, 't_diec_ent', columns)
+    create_table(conn, 't_diec_meta', columns)
 
 
 def create_string_insert_sp(conn):
