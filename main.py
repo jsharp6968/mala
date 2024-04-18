@@ -1,12 +1,16 @@
+"""
+Author: https://github.com/jsharp6968
+"""
 import sys
 import time
+import uuid
 import logging as log
 from file_handler import MalaFileHandler
 from create_db import setup
 from core import run, unzip_files
 from argparser import MalaArgParser
 
-
+EXECUTION_UUID = str(uuid.uuid4())
 setup()
 CMDLINE = " ".join(sys.argv[1:])
 log.basicConfig(filename='mala.log', level=log.DEBUG,
@@ -16,7 +20,7 @@ args = parser.args
 log.debug(f'Starting mala with command "{CMDLINE}"')
 start_time = time.time()
 
-mfh = MalaFileHandler(args)
+mfh = MalaFileHandler(args, EXECUTION_UUID, CMDLINE)
 target_files = []
 if args.dir is not None and args.dir != "." and not args.extracted:
     target_files = unzip_files(mfh, args)

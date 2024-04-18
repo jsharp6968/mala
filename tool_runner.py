@@ -298,8 +298,7 @@ class ToolRunner():
         we do that once and store it in self for efficiency (TODO)
         """
         table_mapping = TOOL_TABLES
-        for key in self.tool_configs.keys():
-            tool_config = self.tool_configs[key]
+        for key, tool_config in self.tool_configs.items():
             if tool_config[0] == "strings":
                 # Strings needs to be handled in a bulk query
                 # Cannot currently be verified, this should be done manually in the DB

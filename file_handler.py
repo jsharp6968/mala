@@ -1,16 +1,72 @@
-import os, datetime, hashlib, json, py7zr
+import os
+import datetime
+import hashlib
+import json
+import datetime
 import logging as log
+import py7zr
 from mala_dao import MalaDAO
 import constants
 
+
 class MalaFileHandler():
-    def __init__(self, args):
+    """
+    A class for finding files and archives in both the filesystem and the DB.
+    Also receives and stores file meta-info, such as links to executions.
+    """
+    def __init__(self, args, uuid, cmdline):
         self.root_dir = args.dir
         self.args = args
         self.dao = MalaDAO()
+        self.uuid = uuid
+        self.cmdline = cmdline
+        self.start_time = datetime.datetime.now().isoformat()
+        self.file_count = 0
+        self.execution_data = {}
+        self.stats = None
+        self.id = None
+
+
+    def store_stats(self, stats: dict):
+        """Store an incoming dict on self."""
+        self.stats = stats
+
+
+    def associate_files(self, file_ids):
+        """
+        The incoming list of file ids was handled during this session.
+        Store that relation in the t_file_ingest table alongside the integer id pf
+        this execution as returned from inserting execution metadata into t_executions.
+        """
+        for file_id in file_ids:
+            self.dao.associate_file_to_execution(file_id, self.id)
+
+
+    def store_execution(self):
+        """
+        Store collected stats on this execution in the DB.
+        """
+        finish_time = datetime.datetime.now().isoformat()
+        self.execution_data = {
+            "exec_uuid": self.uuid,
+            "cmdline": self.cmdline,
+            "fcount": self.file_count,
+            "start_time": self.start_time,
+            "finish_time": finish_time,
+            "toolchain": "§".join(constants.TOOLCHAIN),
+            "thread_limit": constants.THREAD_LIMIT,
+            "shr_cutoff": constants.SHR_CUTOFF,
+        }
+        self.execution_data.update(self.stats)
+        self.id = self.dao.insert_execution(self.execution_data)
 
 
     def check_archive_known(self, archive_path):
+        """
+        This should in theory hash the archive first (and not with md5) to ensure integrity.
+        But nobody has time for that. Instead we check via the name, and ensure we have more
+        than 90% of 
+        """
         archive_name = os.path.basename(archive_path)
         result = self.dao.search_package(archive_name)
         if result:
@@ -99,10 +155,11 @@ class MalaFileHandler():
         if not path:
             path = self.root_dir
         extracted_files = []
-        for dirpath, dirnames, filenames in os.walk(path):
+        for dirpath, _, filenames in os.walk(path):
             for file in filenames:
                 if not file.endswith(".7z"):
                     full_path = os.path.join(dirpath, file)
                     extracted_files.append(full_path)
         extracted_files = list(set(extracted_files))
+        self.file_count = len(extracted_files)
         return extracted_files

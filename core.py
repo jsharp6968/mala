@@ -1,11 +1,12 @@
-import py7zr
 import os
 import sys
 import logging as log
 import concurrent.futures as c_futures
+import py7zr
 from mala_dao import MalaDAO
 from tool_runner import ToolRunner
 import constants
+
 
 
 def extract_sample(path, dest):
@@ -67,10 +68,12 @@ def worker_function(file_chunk, toolchain, verify=None):
     count = 0
     handled = 0
     verified = 0
+    file_ids = []
     try:
         for file in file_chunk:
             count += 1
             file_id, already_known = tool_runner.get_file_data(file)
+            file_ids.append(file_id)
             if already_known:
                 if verify:
                     tool_runner.verify_all_tools(file_id)
@@ -84,6 +87,7 @@ def worker_function(file_chunk, toolchain, verify=None):
     finally:
         dao.destroy()
         log.debug(f"Thread finished. Processed: {count} Verified: {verified} NEW:{handled} ")
+    return (count, handled, verified, file_ids)
 
 
 def singleshot(filename, toolchain):
@@ -124,14 +128,36 @@ def run(args, mfh, target_files):
             for file_chunk in file_chunks
         ]
         c_futures.wait(futures)
+        collate_stats([future.result() for future in futures], mfh)
     return target_files
+
+
+def collate_stats(results, mfh):
+    """
+    Gather all stats and hand off to mfh to store in executions table.
+    Then add a record in t_file_ingest linking each file to this execution.
+    """
+    stats = {
+        "fcount_sanity": 0,
+        "handled_count": 0,
+        "verified_count": 0,
+    }
+    file_ids = []
+    for result in results:
+        stats["fcount_sanity"] += result[0]
+        stats["handled_count"] += result[1]
+        stats["verified_count"] += result[2]
+        file_ids += result[3]
+    mfh.store_stats(stats)
+    mfh.store_execution()
+    mfh.associate_files(file_ids)
 
 
 def balance_target_file_chunks(target_files):
     """
-    Equalize the total raw data size in each chunk to try and ensure consistent thread finishing times.
-    First get all sizes and sort the dictionary, then iterate descending by size and give the smallest
-    chunk the next file. The more extracted samples the more even it gets, and it's quite effective.
+    Equalize the total raw data size in each chunk to try and ensure consistent thread finishing
+    times. First get all sizes and sort the dictionary, then iterate descending by size and give
+    the smallest chunk the next file.
     """
     total_volume = 0
     file_sizes = {}
@@ -143,7 +169,6 @@ def balance_target_file_chunks(target_files):
     num_bins = constants.THREAD_LIMIT
     bins = [[] for _ in range(num_bins)]
     bin_sizes = [0] * num_bins
-    
     # Greedy allocation of largest file to bin of minimum size
     for file, size in sorted_files:
         min_bin_index = bin_sizes.index(min(bin_sizes))
@@ -153,14 +178,20 @@ def balance_target_file_chunks(target_files):
 
 
 def unzip_files(mfh, args):
+    """
+    Use 2 workers to extract all Zip files.
+    Turns out load balancing this stuff is NP-Hard.
+    """
     target_files = mfh.find_7z_files()
-    if target_files:
-        with c_futures.ProcessPoolExecutor(max_workers=2) as executor:
-            futures = [
-                executor.submit(handle_extraction, file, args.dest_dir, args.package)
-                for file in target_files
-            ]
-            c_futures.wait(futures)
+    if not target_files:
+        return []
+
+    with c_futures.ProcessPoolExecutor(max_workers=2) as executor:
+        futures = [
+            executor.submit(handle_extraction, file, args.dest_dir, args.package)
+            for file in target_files
+        ]
+        c_futures.wait(futures)
 
     log.debug(f"Extracted all {len(target_files)} files.")
     if args.package:

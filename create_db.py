@@ -4,6 +4,9 @@ from constants import DB_NAME, DB_USER, DB_PASS, DB_HOST
 
 
 def connect():
+    """
+    Connect to the database using the parameters specified in constants.py.
+    """
     conn = psycopg2.connect(
         host=DB_HOST, dbname=DB_NAME, user=DB_USER, password=DB_PASS
     )
@@ -12,16 +15,20 @@ def connect():
 
 
 def execute_sql(conn, sql):
+    """
+    Execute an SQL statent. Cursor will be closed after.
+    """
     with conn.cursor() as cur:
         cur.execute(sql)
-        conn.commit()
 
 
 def select_sql(conn, sql):
+    """
+    Execute a SELECT statement in SQL. Cursor will be closed after.
+    """
     with conn.cursor() as cur:
         cur.execute(sql)
         rows = cur.fetchall()
-        cur.close()
         return rows
 
 
@@ -49,23 +56,6 @@ def setup():
     print("Completed setup!")
 
 
-def check_table_exists(conn, table_name):
-    sql = f"""SELECT EXISTS (
-   SELECT FROM pg_catalog.pg_tables 
-   WHERE  schemaname != 'pg_catalog' AND 
-          schemaname != 'information_schema' AND 
-          tablename = '{table_name}'
-);"""
-    select_sql(conn, sql)
-
-
-def check_existing_file(sha256):
-    conn = connect()
-    sql = f"select id from t_file where sha256 = ’{sha256}’ limit 1;"
-    row = select_sql(conn, sql)[0]
-    print(row)
-
-
 def create_table(conn, table_name, table_cols:list):
     """
     Strings needs a Bigserial. I hit 2.147 Bn strings at ~950k samples.
@@ -78,11 +68,14 @@ def create_table(conn, table_name, table_cols:list):
 
 
 def create_exiftool_table(conn):
+    """
+    Table for exiftool data.
+    """
     columns = [
         "id_file bigint", 
         "tag text", 
         "content text",
-        #"FOREIGN KEY (id_file) REFERENCES t_file(id)",
+        "FOREIGN KEY (id_file) REFERENCES t_file(id)",
         ]
     create_table(conn, 't_exiftool', columns)
 
@@ -138,7 +131,6 @@ def create_executions_table(conn):
         "exec_uuid CHAR(36) unique",
         "cmdline text",
         "fcount integer",
-        "fsize bigint",
         "start_time timestamp without time zone",
         "finish_time timestamp without time zone",
         "toolchain text",
@@ -152,6 +144,10 @@ def create_executions_table(conn):
 
 
 def create_strings_table(conn):
+    """
+    Table for strings. There is a uniqueness constraint on
+    the value column, and an integer score.
+    """
     columns = [
         "value text unique",
         "score integer"
@@ -160,35 +156,52 @@ def create_strings_table(conn):
 
 
 def create_stringinstance_table(conn):
+    """
+    Table for holding references between strings and files.
+    For each reference, it holds the address at which the string was found
+    inside the sample.
+    """
     columns = [
         "id_file bigint", 
         "id_string bigint", 
         "address integer",
-        #"FOREIGN KEY (id_file) REFERENCES t_file(id)",
-        #"FOREIGN KEY (id_string) REFERENCES t_strings(id)",
+        "FOREIGN KEY (id_file) REFERENCES t_file(id)",
+        "FOREIGN KEY (id_string) REFERENCES t_strings(id)",
         ]
     create_table(conn, 't_stringinstance', columns)
 
 
 def create_tlsh_table(conn):
+    """
+    Table holding TLSH hashes for samples.
+    As there are some old TLSH hashes which are a shorter length, we use a 
+    VARCHAR instead of CHAR, because this table is super fast anyway, and we
+    can support ingesting old hashes too.
+    """
     columns = [
         "id_file bigint", 
         "tlsh_hash varchar(72)",
-        #"FOREIGN KEY (id_file) REFERENCES t_file(id)",
+        "FOREIGN KEY (id_file) REFERENCES t_file(id)",
         ]
     create_table(conn, 't_tlsh', columns)
 
 
 def create_ssdeep_table(conn):
+    """
+    Table for holding ssdeep hashes for files. Can hold up to 1480 chars in the hash.
+    """
     columns = [
         "id_file bigint", 
         "ssdeep_hash varchar(1480)", 
-        #"FOREIGN KEY (id_file) REFERENCES t_file(id)",
+        "FOREIGN KEY (id_file) REFERENCES t_file(id)",
         ]
     create_table(conn, 't_ssdeep', columns)
 
 
 def create_diec_table(conn):
+    """
+    A table for holding the results of diec deep scans.
+    """
     columns = [
         "id_file bigint", 
         "info text",
@@ -196,12 +209,15 @@ def create_diec_table(conn):
         "string text",
         "type text",
         "version text",
-        #"FOREIGN KEY (id_file) REFERENCES t_file(id)",
+        "FOREIGN KEY (id_file) REFERENCES t_file(id)",
         ]
     create_table(conn, 't_diec', columns)
 
 
 def create_diec_ent_table(conn):
+    """
+    Table for holding the results of running an entropy scan with diec.
+    """
     columns = [
         "id_file bigint", 
         "entropy decimal(10, 8)",
@@ -209,17 +225,20 @@ def create_diec_ent_table(conn):
         "s_offset bigint",
         "size bigint",
         "status text",
-        #"FOREIGN KEY (id_file) REFERENCES t_file(id)",
+        "FOREIGN KEY (id_file) REFERENCES t_file(id)",
         ]
     create_table(conn, 't_diec_ent', columns)
 
 
 def create_diec_meta_table(conn):
+    """
+    Table for holding the entropy
+    """
     columns = [
         "id_file bigint", 
         "entropy decimal(10, 8)",
         "status text",
-        #"FOREIGN KEY (id_file) REFERENCES t_file(id)",
+        "FOREIGN KEY (id_file) REFERENCES t_file(id)",
         ]
     create_table(conn, 't_diec_meta', columns)
 

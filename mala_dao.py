@@ -51,27 +51,13 @@ class MalaDAO:
 
 
     def destroy(self):
-        self.close()
-
-
-    def close(self):
+        """Close the DB connection."""
         self.cursor.close()
         self.conn.close()
 
 
-    def commit(self):
-        self.conn.commit()
-
-
-    def rollback(self):
-        self.conn.rollback()
-
-
-    def begin_transaction(self):
-        self.cursor.execute("BEGIN;")
-
-
     def get_file_rowcount(self, file_id, table_name):
+        """Return the rowcount for a sample in a given table."""
         sql = f"select count(*) from {table_name} where id_file = {file_id};"
         self.cursor.execute(sql)
         result = self.cursor.fetchone()
@@ -79,6 +65,7 @@ class MalaDAO:
 
 
     def search_package(self, package_name):
+        """Search for packages by name."""
         sql = f"select * from t_package where basename = '{package_name}';"
         self.cursor.execute(sql)
         result = self.cursor.fetchall()
@@ -100,6 +87,7 @@ class MalaDAO:
 
 
     def insert_statement_returning_id(self, insert_statement):
+        """Insert data and return its new id."""
         inserted_id = -1
         try:
             self.cursor.execute(insert_statement)
@@ -116,6 +104,7 @@ class MalaDAO:
 
 
     def insert_data_returning_id(self, data:dict, table_name):
+        """Generate the insert statement and execute it, returning the id."""
         insert_statement = generate_insert_statement(data, table_name) + "returning id;"
         this_id = self.insert_statement_returning_id(insert_statement)
         return this_id
@@ -134,9 +123,27 @@ class MalaDAO:
         return result[0]
 
 
+    def associate_file_to_execution(self, file_id, execution_id):
+        """Link each sample to the execution where we saw it.
+        This does not give us a precise timestamp of ingestion for every sample,
+        but it does give an approximate ingestion date in the worst case.
+        """
+        sql = "insert into t_file_ingest(id_file, id_execution) values (%s, %s)"
+        self.cursor.execute(sql, (file_id, execution_id))
+
+
+    def insert_execution(self, data: dict):
+        """
+        Insert a record of this mala run in the DB.
+        """
+        inserted_id = self.insert_data_returning_id(data, 't_executions')
+        return inserted_id
+
+
     def insert_package(self, data: dict):
         """
-        Insert one malware archive into the DB."""
+        Insert one malware archive into the DB.
+        """
         inserted_id = self.insert_data_returning_id(data, "t_package")
         return inserted_id
 
@@ -151,7 +158,7 @@ class MalaDAO:
     def insert_mala_strings(self, json_data, file_id):
         """
         Use a custom Rust binary to replicate using strings and filtering the outputs in python.
-        Significantly faster (44 samples/s -> 54)
+        Significantly faster than binutils strings (44 samples/s -> 54).
         """
         if len(json_data) == 0:
             return
@@ -214,6 +221,11 @@ class MalaDAO:
 
 
     def insert_exif_json(self, exif_data, file_id):
+        """
+        Exiftool supports JSON output. Creating a column for each tag
+        it supports is not an option, so just sure tags and corresponding
+        values in the DB.
+        """
         values = []
         sql_statement = (
             "INSERT INTO t_exiftool (tag, content, id_file) VALUES (%s, %s, %s)"
@@ -227,6 +239,10 @@ class MalaDAO:
 
 
     def insert_tlsh_json(self, tlsh_data, file_id):
+        """
+        TLSH output in JSON format, which also provides a SHA256 hash,
+        we don't need as we have it already in t_file.
+        """
         values = [tlsh_data['digests'][0]['tlsh'], file_id]
         sql_statement = (
             "INSERT INTO t_tlsh (tlsh_hash, id_file) VALUES (%s, %s)"
@@ -235,6 +251,9 @@ class MalaDAO:
 
 
     def insert_ssdeep_hash(self, ssdeep_data, file_id):
+        """
+        Store the ssdeep hash of the sample.
+        """
         ssdeep_lines = ssdeep_data.split('\n')
         ssdeep_hash = ssdeep_lines[1].split(',')[0]
         values = [ssdeep_hash, file_id]
@@ -245,6 +264,13 @@ class MalaDAO:
 
 
     def get_fpath_from_id(self, file_id):
+        """
+        Get the path of the sample. If you have a defined table structure, you can use this
+        after ingestion to infer which package it came from later, for example 
+            `if path contains('InTheWild.0013'):...` 
+        If you ensure the file is still present and are not deleting samples, then you can 
+        directly access the sample at this path.
+        """
         sql = f"select path from t_file where id = {file_id}"
         self.cursor.execute(sql)
         result = self.cursor.fetchone()
@@ -264,6 +290,12 @@ class MalaDAO:
 
 
     def insert_diec_json(self, diec_data, file_id):
+        """
+        Parse the JSON output of diec and store it in three tables:
+        - t_diec: information from the deep section scan
+        - t_diec_ent: entropy information about the sample's sectors
+        - t_diec_meta: entropy information about the sample's overall entropy
+        """
         values = []
         if 'detects' in diec_data.keys():
             # Deep scan
