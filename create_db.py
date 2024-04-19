@@ -1,3 +1,8 @@
+"""
+A module of functions for creating the DB structure of mala.
+If you trigger the setup() function, you will create everything needed
+to run mala.
+"""
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from constants import DB_NAME, DB_USER, DB_PASS, DB_HOST
@@ -38,7 +43,6 @@ def setup():
     stored procedure exists.
     """
     setup_conn = connect()
-    
     create_file_table(setup_conn)
     create_exiftool_table(setup_conn)
     create_strings_table(setup_conn)
@@ -53,6 +57,7 @@ def setup():
     create_packages_table(setup_conn)
     create_file_ingest_table(setup_conn)
     create_executions_table(setup_conn)
+    setup_conn.close()
     print("Completed setup!")
 
 
@@ -232,7 +237,7 @@ def create_diec_ent_table(conn):
 
 def create_diec_meta_table(conn):
     """
-    Table for holding the entropy
+    Table for holding the entropy scan results of the file overall.
     """
     columns = [
         "id_file bigint", 
@@ -244,6 +249,9 @@ def create_diec_meta_table(conn):
 
 
 def create_string_insert_sp(conn):
+    """
+    Create the stored procedure for inserting strings with their scores.
+    """
     sql = """CREATE OR REPLACE FUNCTION insert_strings(arr_strings TEXT[], arr_scores INTEGER[])
 RETURNS VOID AS $$
 BEGIN
@@ -257,6 +265,9 @@ $$ LANGUAGE plpgsql;
 
 
 def create_string_instance_sp(conn):
+    """
+    Create the stored procedure for storing references to strings, and their addresses in decimal.
+    """
     sql = """CREATE OR REPLACE FUNCTION insert_string_instances(arr_strings TEXT[], \
         file_id_val INTEGER, arr_addresses INTEGER[])
 RETURNS VOID AS $$
@@ -270,4 +281,3 @@ END;
 $$ LANGUAGE plpgsql;
     """
     execute_sql(conn, sql)
-
