@@ -38,7 +38,7 @@ TOOLCHAIN = [
     "exiftool,-S,-j,-P",
     #"strings,-t,d,-a,-n,6",
     #"strings,-t,d,-a,-n,6,-e,l",
-    "mala_strings",
+    #"mala_strings",
     "diec,-je",
     "diec,-jd",
     "tlsh,-ojson,-f",
